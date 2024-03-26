@@ -63,14 +63,14 @@ templates = Jinja2Templates(directory="templates")
 
 @app.get("/", response_class=HTMLResponse)
 async def llama(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request})
+    return templates.TemplateResponse("../src/index.html", {"request": request})
 
 
 # Serve files
 @app.get("/{name_file}")
 def get_file(name_file: str):
-    if os.path.exists(path=os.getcwd() + "/templates/" + name_file):
-        return FileResponse(path=os.getcwd() + "/templates/" + name_file)
+    if os.path.exists(path=os.getcwd() + "../static/" + name_file):
+        return FileResponse(path=os.getcwd() + "../static/" + name_file)
     else:
         print("File: " + name_file + "doesn't exist!")
 
