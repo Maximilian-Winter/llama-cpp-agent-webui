@@ -6,14 +6,9 @@
 
     class Chat {
         messages: Message[] = [];
-
-        addMessage(role: string, text: string) {
-            this.messages = [...this.messages, new Message(role, text)];
-        }
-
     }
 
-    let current_chat: Chat;
+    let current_chat: Chat = new Chat();
     let configuration_sidebar_visible = false;
     let text = "";
 
@@ -33,7 +28,7 @@
 
     function send_message() {
         console.log(text);
-        current_chat.addMessage("user", text);
+        current_chat.messages = [...current_chat.messages, new Message("user", text)];
     }
 
     function toggleSidebar() {
@@ -220,7 +215,7 @@
                             />
 
                             <div class="flex max-w-3xl items-center">
-                                <p>message.text</p>
+                                <p>{message.text}</p>
                             </div>
                         </div>
                     {:else}
@@ -235,7 +230,7 @@
                                     class="flex w-full flex-col items-start lg:flex-row lg:justify-between"
                             >
                                 <p class="max-w-3xl">
-                                    message.text
+                                    {message.text}
                                 </p>
                                 <div
                                         class="mt-4 flex flex-row justify-start gap-x-2 text-slate-500 lg:mt-0"
