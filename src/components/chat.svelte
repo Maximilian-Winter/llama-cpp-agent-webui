@@ -53,7 +53,7 @@
         });
 
         current_chat.messages = [...current_chat.messages, new Message("assistant", "")];
-
+        text = "";
         if (response.ok) {
             subscribeToUpdates(current_chat.messages.length - 1);
         } else {
@@ -88,11 +88,11 @@
     }
 </script>
 
-<div class="flex flex-row bg-slate-900">
+<div class="flex flex-row bg-[#05060a]">
     <!-- Sidebar -->
     <aside class="flex">
         <div
-                class="flex h-[100svh] w-60 flex-col overflow-y-auto bg-slate-50 pt-8 dark:border-slate-700 dark:bg-slate-900 sm:h-[100vh] sm:w-64"
+                class="flex h-[100svh] w-60 flex-col overflow-y-auto bg-slate-50 pt-8 dark:border-slate-700 dark:bg-[#05060a] sm:h-[100vh] sm:w-64"
         >
             <div class="flex px-4">
                 <!-- Logo -->
@@ -146,46 +146,6 @@
                         Tailwind Classes
                     </h1>
                     <p class="text-xs text-slate-500 dark:text-slate-400">12 Mar</p>
-                </button>
-                <button
-                        class="flex w-full flex-col gap-y-2 rounded-lg bg-slate-200 px-3 py-2 text-left transition-colors duration-200 focus:outline-none dark:bg-slate-800"
-                >
-                    <h1
-                            class="text-sm font-medium capitalize text-slate-700 dark:text-slate-200"
-                    >
-                        explain quantum computing
-                    </h1>
-                    <p class="text-xs text-slate-500 dark:text-slate-400">10 Feb</p>
-                </button>
-                <button
-                        class="flex w-full flex-col gap-y-2 rounded-lg px-3 py-2 text-left transition-colors duration-200 hover:bg-slate-200 focus:outline-none dark:hover:bg-slate-800"
-                >
-                    <h1
-                            class="text-sm font-medium capitalize text-slate-700 dark:text-slate-200"
-                    >
-                        How to create ERP Diagram
-                    </h1>
-                    <p class="text-xs text-slate-500 dark:text-slate-400">22 Jan</p>
-                </button>
-                <button
-                        class="flex w-full flex-col gap-y-2 rounded-lg px-3 py-2 text-left transition-colors duration-200 hover:bg-slate-200 focus:outline-none dark:hover:bg-slate-800"
-                >
-                    <h1
-                            class="text-sm font-medium capitalize text-slate-700 dark:text-slate-200"
-                    >
-                        API Scaling Strategies
-                    </h1>
-                    <p class="text-xs text-slate-500 dark:text-slate-400">1 Jan</p>
-                </button>
-                <button
-                        class="flex w-full flex-col gap-y-2 rounded-lg px-3 py-2 text-left transition-colors duration-200 hover:bg-slate-200 focus:outline-none dark:hover:bg-slate-800"
-                >
-                    <h1
-                            class="text-sm font-medium capitalize text-slate-700 dark:text-slate-200"
-                    >
-                        What is GPT UI?
-                    </h1>
-                    <p class="text-xs text-slate-500 dark:text-slate-400">1 Jan</p>
                 </button>
                 <button
                         class="flex w-full flex-col gap-y-2 rounded-lg px-3 py-2 text-left transition-colors duration-200 hover:bg-slate-200 focus:outline-none dark:hover:bg-slate-800"
@@ -250,7 +210,7 @@
     <div class="flex h-[97vh] w-full flex-col">
         <!-- Prompt Messages -->
         <div
-                class="flex-1 overflow-y-auto bg-slate-900 text-sm leading-6 text-slate-900 shadow-md dark:bg-slate-800 dark:text-slate-300 sm:text-base sm:leading-7"
+                class="flex-1 overflow-y-auto bg-[#05060a] text-sm leading-6 text-slate-900 shadow-md dark:bg-slate-800 dark:text-slate-300 sm:text-base sm:leading-7"
         >
             {#if current_chat}
                 {#each current_chat.messages as message, index}
@@ -314,7 +274,7 @@
         </div>
         <!-- Prompt message input -->
         <form
-                class="flex w-full items-center rounded-b-md border-t border-slate-300 bg-slate-200 p-2 dark:border-slate-700 dark:bg-slate-900"
+                class="flex w-full items-center rounded-b-md border-t border-slate-300 bg-slate-200 p-2 dark:border-slate-700 dark:bg-[#05060a]"
         >
             <label for="chat-input" class="sr-only">Enter your prompt</label>
             <div>
@@ -377,7 +337,7 @@
     {#if configuration_sidebar_visible}
         <aside class="flex">
             <div
-                    class="relative h-screen w-60 overflow-y-auto border-l border-slate-300 bg-slate-50 py-8 dark:border-slate-700 dark:bg-slate-900 sm:w-64"
+                    class="relative h-screen w-60 overflow-y-auto border-l border-slate-300 bg-slate-50 py-8 dark:border-slate-700 dark:bg-[#05060a] sm:w-64"
             >
                 <div
                         class="mb-4 flex items-center gap-x-2 px-2 text-slate-800 dark:text-slate-200"
