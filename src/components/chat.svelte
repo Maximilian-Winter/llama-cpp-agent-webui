@@ -92,9 +92,9 @@
     <!-- Sidebar -->
     <aside class="flex">
         <div
-                class="flex h-[100svh] w-60 flex-col overflow-y-auto bg-slate-50 pt-8 dark:border-slate-700 dark:bg-[#05060a] sm:h-[100vh] sm:w-64"
+                class="flex h-[100svh] w-60 2xl:w-96 flex-col overflow-y-auto bg-slate-50 pt-8 dark:border-slate-700 dark:bg-[#05060a] sm:h-[100vh] sm:w-64"
         >
-            <div class="flex px-4">
+            <div class="flex px-4 pb-8">
                 <!-- Logo -->
                 <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -111,7 +111,8 @@
                     llama-cpp-agent WebUI
                 </h2>
             </div>
-            <div class="mx-2 mt-8">
+            <div class="mx-2">
+                <!-- remember: new stuff buttons -->
                 <button
                         class="flex w-full gap-x-4 rounded-lg border border-slate-300 p-4 text-left text-sm font-medium text-slate-700 transition-colors duration-200 hover:bg-slate-200 focus:outline-none dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
                         on:click={createChat}
@@ -337,7 +338,7 @@
     {#if configuration_sidebar_visible}
         <aside class="flex">
             <div
-                    class="relative h-screen w-60 overflow-y-auto border-l border-slate-300 bg-slate-50 py-8 dark:border-slate-700 dark:bg-[#05060a] sm:w-64"
+                    class="relative h-screen w-60 2xl:w-96 overflow-y-auto border-l border-slate-300 bg-slate-50 py-8 dark:border-slate-700 dark:bg-[#05060a] sm:w-64"
             >
                 <div
                         class="mb-4 flex items-center gap-x-2 px-2 text-slate-800 dark:text-slate-200"
