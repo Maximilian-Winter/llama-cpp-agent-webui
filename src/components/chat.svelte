@@ -1,15 +1,13 @@
 <script lang="ts">
-    class Message
-    {
-        constructor(public role: string, public text: string) {}
+    class Message {
+        constructor(public role: string, public text: string) {
+        }
     }
 
-    class Chat
-    {
+    class Chat {
         messages: Message[] = [];
 
-        addMessage(role: string, text: string)
-        {
+        addMessage(role: string, text: string) {
             this.messages = [...this.messages, new Message(role, text)];
         }
 
@@ -29,18 +27,16 @@
     let rep_pen = 1.2;
     let rep_pen_range = 512;
 
-    function createChat()
-    {
+    function createChat() {
         current_chat = new Chat();
     }
 
-    function send_message()
-    {
+    function send_message() {
+        console.log(text);
         current_chat.addMessage("user", text);
     }
 
-    function toggleSidebar()
-    {
+    function toggleSidebar() {
         configuration_sidebar_visible = !configuration_sidebar_visible;
     }
 </script>
@@ -270,7 +266,6 @@
                     {/if}
                 {/each}
             {/if}
-
         </div>
         <!-- Prompt message input -->
         <form
