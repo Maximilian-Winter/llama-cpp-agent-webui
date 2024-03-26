@@ -1,6 +1,6 @@
 <script lang="ts">
     class Message {
-        constructor(public role: string, public text: string) {
+        constructor(public role: string, public content: string) {
         }
     }
 
@@ -9,6 +9,7 @@
     }
 
     let current_chat: Chat = new Chat();
+
     let configuration_sidebar_visible = false;
     let text = "";
 
@@ -26,9 +27,60 @@
         current_chat = new Chat();
     }
 
-    function send_message() {
-        console.log(text);
+    async function send_message() {
+
         current_chat.messages = [...current_chat.messages, new Message("user", text)];
+        const payload = {
+            messages: current_chat.messages,
+            settings: {
+                max_tokens,
+                temperature,
+                top_p,
+                top_k,
+                min_p,
+                typ_p,
+                tfsz,
+                rep_pen,
+                rep_pen_range,
+            }
+        };
+        const response = await fetch('http://localhost:8000/llama/complete', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload),
+        });
+
+        current_chat.messages = [...current_chat.messages, new Message("assistant", "")];
+
+        if (response.ok) {
+            subscribeToUpdates(current_chat.messages.length - 1);
+        } else {
+            console.error('Failed to start session');
+        }
+
+    }
+
+    function subscribeToUpdates(message_id: number) {
+        const source = new EventSource(`http://localhost:8000/llama/stream`);
+
+        source.onmessage = function(event) {
+            // Process the event data
+            current_chat.messages[message_id].content += event.data;
+            // Update your Svelte state here
+        };
+
+        source.onerror = function() {
+            console.error('EventSource failed');
+            source.close();
+        };
+
+        // Optionally listen for a custom event to close the source
+        source.addEventListener('session-complete', () => {
+            console.log('Session complete');
+            source.close();
+        });
     }
 
     function toggleSidebar() {
@@ -56,11 +108,7 @@
                     ></path>
                 </svg>
                 <h2 class="px-5 text-lg font-medium text-slate-800 dark:text-slate-200">
-                    Chats
-                    <span
-                            class="mx-2 rounded-full bg-blue-600 px-2 py-1 text-xs text-slate-200"
-                    >6</span
-                    >
+                    llama-cpp-agent WebUI
                 </h2>
             </div>
             <div class="mx-2 mt-8">
@@ -215,7 +263,7 @@
                             />
 
                             <div class="flex max-w-3xl items-center">
-                                <p>{message.text}</p>
+                                {message.content.trim()}
                             </div>
                         </div>
                     {:else}
@@ -229,9 +277,11 @@
                             <div
                                     class="flex w-full flex-col items-start lg:flex-row lg:justify-between"
                             >
-                                <p class="max-w-3xl">
-                                    {message.text}
-                                </p>
+
+                                <div class="flex max-w-3xl items-center message">
+                                    {message.content.trim()}
+                                </div>
+
                                 <div
                                         class="mt-4 flex flex-row justify-start gap-x-2 text-slate-500 lg:mt-0"
                                 >
@@ -486,5 +536,8 @@
 <style>
     .hidden {
         transform: translateX(-100%);
+    }
+    .message {
+        white-space: pre-wrap; /* Preserves whitespace and wraps text */
     }
 </style>
