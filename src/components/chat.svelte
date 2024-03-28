@@ -88,11 +88,11 @@
     }
 </script>
 
-<div class="flex flex-row bg-[#010409]">
+<div class="flex flex-row bg-[#05060a]">
     <!-- Sidebar -->
-    <aside class="flex">
+    <aside class="flex ">
         <div
-                class="flex h-[100svh] w-60 2xl:w-96 flex-col overflow-y-auto bg-slate-50 pt-8 dark:border-slate-700 dark:bg-[#05060a] sm:h-[100vh] sm:w-64"
+                class="flex h-[100svh] border-r border-slate-300 w-60 2xl:w-96 flex-col overflow-y-auto bg-slate-50 pt-8 dark:border-slate-700 dark:bg-[#05060a] sm:h-[100vh] sm:w-64"
         >
             <div class="flex px-4 pb-8">
                 <!-- Logo -->
@@ -338,7 +338,7 @@
     {#if configuration_sidebar_visible}
         <aside class="flex">
             <div
-                    class="relative h-screen w-60 2xl:w-96 overflow-y-auto border-l border-slate-300 bg-slate-50 py-8 dark:border-[#30363d] dark:bg-[#010409] sm:w-64"
+                    class="relative h-screen w-60 2xl:w-96 overflow-y-auto border-l border-slate-300 bg-slate-50 py-8 dark:border-[#30363d] dark:bg-[#05060a] sm:w-64"
             >
                 <div
                         class="mb-4 flex items-center gap-x-2 px-2 text-slate-800 dark:text-slate-200"
