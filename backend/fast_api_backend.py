@@ -20,7 +20,7 @@ from llama_cpp_agent.messages_formatter import MessagesFormatterType
 
 main_model = LlamaCppEndpointSettings(completions_endpoint_url="http://127.0.0.1:8080/completion")
 wrapped_model = LlamaCppAgent(main_model, debug_output=True,
-                              system_prompt="",
+                              system_prompt="You are an helpful AI assistant.",
                               predefined_messages_formatter_type=MessagesFormatterType.CHATML, )
 settings_dict = {}
 
