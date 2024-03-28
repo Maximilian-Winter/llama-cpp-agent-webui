@@ -223,7 +223,7 @@
                                     alt="User"
                             />
 
-                            <div class="flex max-w-3xl items-center">
+                            <div class="flex max-w-3xl items-center message">
                                 {message.content.trim()}
                             </div>
                         </div>
