@@ -88,7 +88,7 @@
     }
 </script>
 
-<div class="flex flex-row bg-[#05060a]">
+<div class="flex flex-row bg-[#010409]">
     <!-- Sidebar -->
     <aside class="flex">
         <div
@@ -114,7 +114,7 @@
             <div class="mx-2">
                 <!-- remember: new stuff buttons -->
                 <button
-                        class="flex w-full gap-x-4 rounded-lg border border-slate-300 p-4 text-left text-sm font-medium text-slate-700 transition-colors duration-200 hover:bg-slate-200 focus:outline-none dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
+                        class="flex w-full gap-x-4 rounded-lg border border-[#30363d] p-4 text-left text-sm font-medium text-slate-700 transition-colors duration-200 hover:bg-slate-200 focus:outline-none dark:border-[#30363d] dark:text-slate-200 dark:hover:bg-slate-800"
                         on:click={createChat}
                 >
                     <svg
@@ -136,7 +136,7 @@
             </div>
             <!-- Previous chats container -->
             <div
-                    class="h-1/2 space-y-4 overflow-y-auto border-b border-slate-300 px-2 py-4 dark:border-slate-700"
+                    class="h-1/2 space-y-4 overflow-y-auto border-b border-slate-300 px-2 py-4 dark:border-[#30363d]"
             >
                 <button
                         class="flex w-full flex-col gap-y-2 rounded-lg px-3 py-2 text-left transition-colors duration-200 hover:bg-slate-200 focus:outline-none dark:hover:bg-slate-800"
@@ -211,7 +211,7 @@
     <div class="flex h-[97vh] w-full flex-col">
         <!-- Prompt Messages -->
         <div
-                class="flex-1 overflow-y-auto bg-[#05060a] text-sm leading-6 text-slate-900 shadow-md dark:bg-[#060e19] dark:text-slate-300 sm:text-base sm:leading-7"
+                class="flex-1 overflow-y-auto bg-[#0d1117] text-sm leading-6 text-slate-900 shadow-md dark:bg-[#0d1117] dark:text-slate-300 sm:text-base sm:leading-7"
         >
             {#if current_chat}
                 {#each current_chat.messages as message, index}
@@ -275,7 +275,7 @@
         </div>
         <!-- Prompt message input -->
         <form
-                class="flex w-full items-center rounded-b-md border-t border-slate-300 bg-slate-200 p-8 pb-0 dark:border-slate-700 dark:bg-[#05060a]"
+                class="flex w-full items-center rounded-b-md border-t border-slate-300 bg-slate-200 p-8 pb-0 dark:border-[#30363d] dark:bg-[#05060a]"
         >
             <label for="chat-input" class="sr-only">Enter your prompt</label>
             <div>
@@ -304,7 +304,7 @@
             <textarea
                     id="chat-input"
                     rows="3"
-                    class="prompt-input mx-6 p-2 flex min-h-full w-full rounded-md border border-slate-300 bg-slate-50 text-base text-slate-900 placeholder-slate-400 focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600 dark:border-slate-700 dark:bg-[#060e19] dark:text-slate-50 dark:placeholder-slate-400 dark:focus:border-blue-600 dark:focus:ring-blue-600"
+                    class="prompt-input mx-6 p-2 flex min-h-full w-full rounded-md border border-slate-300 bg-slate-50 text-base text-slate-900 placeholder-slate-400 focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600 dark:border-[#30363d] dark:bg-[#0d1117] dark:text-slate-50 dark:placeholder-slate-400 dark:focus:border-blue-600 dark:focus:ring-blue-600"
                     placeholder="Enter your prompt"
                     bind:value={text}
             ></textarea>
@@ -338,7 +338,7 @@
     {#if configuration_sidebar_visible}
         <aside class="flex">
             <div
-                    class="relative h-screen w-60 2xl:w-96 overflow-y-auto border-l border-slate-300 bg-slate-50 py-8 dark:border-slate-700 dark:bg-[#05060a] sm:w-64"
+                    class="relative h-screen w-60 2xl:w-96 overflow-y-auto border-l border-slate-300 bg-slate-50 py-8 dark:border-[#30363d] dark:bg-[#010409] sm:w-64"
             >
                 <div
                         class="mb-4 flex items-center gap-x-2 px-2 text-slate-800 dark:text-slate-200"
@@ -376,7 +376,7 @@
                     <select
                             name="select-model"
                             id="select-model"
-                            class="block w-full cursor-pointer rounded-lg border-r-4 border-transparent bg-slate-200 py-3 pl-1 text-xs focus:outline-none focus:ring-2 focus:ring-blue-600 dark:bg-[#060e19] dark:placeholder-slate-400 dark:focus:ring-blue-600"
+                            class="block w-full cursor-pointer rounded-lg border-r-4 border-transparent bg-slate-200 py-3 pl-1 text-xs focus:outline-none focus:ring-2 focus:ring-blue-600 dark:bg-[#0d1117] dark:placeholder-slate-400 dark:focus:ring-blue-600"
                     >
                         <option value="gpt-3.5-turbo">gpt-3.5-turbo</option>
                         <option value="gpt-4">gpt-4</option>
@@ -392,7 +392,7 @@
                     <input
                             type="number"
                             id="max-tokens"
-                            class="block w-full rounded-lg bg-slate-200 p-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-600 dark:bg-[#060e19] dark:placeholder-slate-400 dark:focus:ring-blue-600"
+                            class="block w-full rounded-lg bg-slate-200 p-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-600 dark:bg-[#0d1117] dark:placeholder-slate-400 dark:focus:ring-blue-600"
                             placeholder="2048"
                             bind:value={max_tokens}
                     />
@@ -403,7 +403,7 @@
                     <input
                             type="number"
                             id="temperature"
-                            class="block w-full rounded-lg bg-slate-200 p-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-600 dark:bg-[#060e19] dark:placeholder-slate-400 dark:focus:ring-blue-600"
+                            class="block w-full rounded-lg bg-slate-200 p-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-600 dark:bg-[#0d1117] dark:placeholder-slate-400 dark:focus:ring-blue-600"
                             placeholder="0.7"
                             bind:value={temperature}
                     />
@@ -414,7 +414,7 @@
                     <input
                             type="number"
                             id="top-p"
-                            class="block w-full rounded-lg bg-slate-200 p-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-600 dark:bg-[#060e19] dark:placeholder-slate-400 dark:focus:ring-blue-600"
+                            class="block w-full rounded-lg bg-slate-200 p-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-600 dark:bg-[#0d1117] dark:placeholder-slate-400 dark:focus:ring-blue-600"
                             placeholder="1"
                             bind:value={top_p}
                     />
@@ -424,7 +424,7 @@
                     <input
                             type="number"
                             id="top-k"
-                            class="block w-full rounded-lg bg-slate-200 p-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-600 dark:bg-[#060e19] dark:placeholder-slate-400 dark:focus:ring-blue-600"
+                            class="block w-full rounded-lg bg-slate-200 p-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-600 dark:bg-[#0d1117] dark:placeholder-slate-400 dark:focus:ring-blue-600"
                             placeholder="0"
                             bind:value={top_k}
                     />
@@ -436,7 +436,7 @@
                     <input
                             type="number"
                             id="min-p"
-                            class="block w-full rounded-lg bg-slate-200 p-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-600 dark:bg-[#060e19] dark:placeholder-slate-400 dark:focus:ring-blue-600"
+                            class="block w-full rounded-lg bg-slate-200 p-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-600 dark:bg-[#0d1117] dark:placeholder-slate-400 dark:focus:ring-blue-600"
                             placeholder="0"
                             bind:value={min_p}
                     />
@@ -447,7 +447,7 @@
                     <input
                             type="number"
                             id="typ-p"
-                            class="block w-full rounded-lg bg-slate-200 p-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-600 dark:bg-[#060e19] dark:placeholder-slate-400 dark:focus:ring-blue-600"
+                            class="block w-full rounded-lg bg-slate-200 p-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-600 dark:bg-[#0d1117] dark:placeholder-slate-400 dark:focus:ring-blue-600"
                             placeholder="1"
                             bind:value={typ_p}
                     />
@@ -457,7 +457,7 @@
                     <input
                             type="number"
                             id="tfsz"
-                            class="block w-full rounded-lg bg-slate-200 p-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-600 dark:bg-[#060e19] dark:placeholder-slate-400 dark:focus:ring-blue-600"
+                            class="block w-full rounded-lg bg-slate-200 p-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-600 dark:bg-[#0d1117] dark:placeholder-slate-400 dark:focus:ring-blue-600"
                             placeholder="1"
                             bind:value={tfsz}
                     />
@@ -468,7 +468,7 @@
                     <input
                             type="number"
                             id="rep-pen"
-                            class="block w-full rounded-lg bg-slate-200 p-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-600 dark:bg-[#060e19] dark:placeholder-slate-400 dark:focus:ring-blue-600"
+                            class="block w-full rounded-lg bg-slate-200 p-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-600 dark:bg-[#0d1117] dark:placeholder-slate-400 dark:focus:ring-blue-600"
                             placeholder="1.2"
                             bind:value={rep_pen}
                     />
@@ -478,7 +478,7 @@
                     <input
                             type="number"
                             id="rep-pen-range"
-                            class="block w-full rounded-lg bg-slate-200 p-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-600 dark:bg-[#060e19] dark:placeholder-slate-400 dark:focus:ring-blue-600"
+                            class="block w-full rounded-lg bg-slate-200 p-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-600 dark:bg-[#0d1117] dark:placeholder-slate-400 dark:focus:ring-blue-600"
                             placeholder="512"
                             bind:value={rep_pen_range}
                     />
