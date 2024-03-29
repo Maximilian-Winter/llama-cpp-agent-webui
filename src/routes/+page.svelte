@@ -1,8 +1,8 @@
 <script lang="ts">
   import "../app.scss";
-  import Chat from '../components/chat.svelte'
+  import Main from '../components/main.svelte'
 </script>
 
 <main class="bg-slate-300">
-    <Chat></Chat>
+    <Main></Main>
 </main>
