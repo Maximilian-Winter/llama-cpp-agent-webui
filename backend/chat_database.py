@@ -118,6 +118,38 @@ class ChatDatabase:
         messages = session.query(Message).filter(Message.chat_id == chat_id).all()
         return messages
 
+    def get_chat_details(self, chat_id):
+        session = self.Session()
+        chat = session.query(Chat).filter(Chat.id == chat_id).first()
+        if chat:
+            # Assuming the agent is linked directly to the chat
+            agent_details = {
+                "id": chat.agent.id,
+                "name": chat.agent.name,
+                "instructions": chat.agent.instructions
+            } if chat.agent else None
+
+            # Compiling a list of messages in the chat
+            messages_details = [
+                {
+                    "id": message.id,
+                    "role": message.role,
+                    "content": message.content,
+                    "chat_id": chat_id
+                } for message in chat.messages
+            ]
+
+            chat_details = {
+                "id": chat_id,
+                "title": chat.title,
+                "agent": agent_details,
+                "messages": messages_details
+            }
+
+            return chat_details
+
+        else:
+            return None
 
 # Example usage:
 db = ChatDatabase()
