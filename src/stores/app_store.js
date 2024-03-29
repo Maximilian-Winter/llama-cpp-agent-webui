@@ -17,6 +17,8 @@ export class Chat {
      */
     messages = [];
 }
+
+export let app_mode = writable("chat");
 export let sidebarVisible = writable(false);
 export let current_chat =  writable(new Chat());
 
