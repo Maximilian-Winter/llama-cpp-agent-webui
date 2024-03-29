@@ -93,7 +93,7 @@ async def stream_llama(request: Request):
     global settings_dict, wrapped_model
 
     async def async_generator():
-        for item in wrapped_model.get_chat_response(penalize_nl=False, yield_streaming_responses=True, **settings_dict):
+        for item in wrapped_model.get_chat_response_generator(penalize_nl=False, yield_streaming_responses=True, **settings_dict):
             yield item
 
     async def server_sent_events():
