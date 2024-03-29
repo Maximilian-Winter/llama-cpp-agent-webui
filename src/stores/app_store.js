@@ -1,5 +1,15 @@
 import { writable } from 'svelte/store';
 
+export class Agent {
+    /**
+     * @param {string} name
+     * @param {string} instructions
+     */
+    constructor(name, instructions) {
+        this.name = name;
+        this.instructions = instructions;
+    }
+}
 export class Message {
 
     /**
@@ -13,9 +23,15 @@ export class Message {
 }
 export class Chat {
     /**
-     * @type {Message[]}
+     * @param {string} title
+     * @param {Agent} agent
+     * @param {Message[]} messages
      */
-    messages = [];
+    constructor(title = "", agent= new Agent("Jack", "You are a helpful assistant."), messages=[]) {
+        this.title = title;
+        this.agent = agent;
+        this.messages = messages;
+    }
 }
 
 export let app_mode = writable("chat");
