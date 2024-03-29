@@ -54,7 +54,7 @@
             <select
                     name="select-model"
                     id="select-model"
-                    class="block w-full cursor-pointer rounded-lg border-r-4 border-transparent bg-slate-200 py-3 pl-1 text-xs focus:outline-none focus:ring-2 focus:ring-blue-600 dark:bg-[#0d1117] dark:placeholder-slate-400 dark:focus:ring-blue-600"
+                    class="block w-full cursor-pointer rounded-lg border-r-4 border-transparent bg-slate-200 py-3 pl-1 text-xs focus:outline-none focus:ring-2 focus:ring-blue-600 dark:bg-[#171E28] dark:placeholder-slate-400 dark:focus:ring-blue-600"
             >
                 <option value="gpt-3.5-turbo">gpt-3.5-turbo</option>
                 <option value="gpt-4">gpt-4</option>
@@ -70,7 +70,7 @@
             <input
                     type="number"
                     id="max-tokens"
-                    class="block w-full rounded-lg bg-slate-200 p-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-600 dark:bg-[#0d1117] dark:placeholder-slate-400 dark:focus:ring-blue-600"
+                    class="block w-full rounded-lg bg-slate-200 p-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-600 dark:bg-[#171E28] dark:placeholder-slate-400 dark:focus:ring-blue-600"
                     placeholder="2048"
                     bind:value={$max_tokens}
             />
@@ -81,7 +81,7 @@
             <input
                     type="number"
                     id="temperature"
-                    class="block w-full rounded-lg bg-slate-200 p-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-600 dark:bg-[#0d1117] dark:placeholder-slate-400 dark:focus:ring-blue-600"
+                    class="block w-full rounded-lg bg-slate-200 p-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-600 dark:bg-[#171E28] dark:placeholder-slate-400 dark:focus:ring-blue-600"
                     placeholder="0.7"
                     bind:value={$temperature}
             />
@@ -92,7 +92,7 @@
             <input
                     type="number"
                     id="top-p"
-                    class="block w-full rounded-lg bg-slate-200 p-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-600 dark:bg-[#0d1117] dark:placeholder-slate-400 dark:focus:ring-blue-600"
+                    class="block w-full rounded-lg bg-slate-200 p-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-600 dark:bg-[#171E28] dark:placeholder-slate-400 dark:focus:ring-blue-600"
                     placeholder="1"
                     bind:value={$top_p}
             />
@@ -102,7 +102,7 @@
             <input
                     type="number"
                     id="top-k"
-                    class="block w-full rounded-lg bg-slate-200 p-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-600 dark:bg-[#0d1117] dark:placeholder-slate-400 dark:focus:ring-blue-600"
+                    class="block w-full rounded-lg bg-slate-200 p-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-600 dark:bg-[#171E28] dark:placeholder-slate-400 dark:focus:ring-blue-600"
                     placeholder="0"
                     bind:value={$top_k}
             />
@@ -114,7 +114,7 @@
             <input
                     type="number"
                     id="min-p"
-                    class="block w-full rounded-lg bg-slate-200 p-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-600 dark:bg-[#0d1117] dark:placeholder-slate-400 dark:focus:ring-blue-600"
+                    class="block w-full rounded-lg bg-slate-200 p-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-600 dark:bg-[#171E28] dark:placeholder-slate-400 dark:focus:ring-blue-600"
                     placeholder="0"
                     bind:value={$min_p}
             />
@@ -125,7 +125,7 @@
             <input
                     type="number"
                     id="typ-p"
-                    class="block w-full rounded-lg bg-slate-200 p-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-600 dark:bg-[#0d1117] dark:placeholder-slate-400 dark:focus:ring-blue-600"
+                    class="block w-full rounded-lg bg-slate-200 p-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-600 dark:bg-[#171E28] dark:placeholder-slate-400 dark:focus:ring-blue-600"
                     placeholder="1"
                     bind:value={$typ_p}
             />
@@ -135,7 +135,7 @@
             <input
                     type="number"
                     id="tfsz"
-                    class="block w-full rounded-lg bg-slate-200 p-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-600 dark:bg-[#0d1117] dark:placeholder-slate-400 dark:focus:ring-blue-600"
+                    class="block w-full rounded-lg bg-slate-200 p-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-600 dark:bg-[#171E28] dark:placeholder-slate-400 dark:focus:ring-blue-600"
                     placeholder="1"
                     bind:value={$tfsz}
             />
@@ -146,7 +146,7 @@
             <input
                     type="number"
                     id="rep-pen"
-                    class="block w-full rounded-lg bg-slate-200 p-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-600 dark:bg-[#0d1117] dark:placeholder-slate-400 dark:focus:ring-blue-600"
+                    class="block w-full rounded-lg bg-slate-200 p-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-600 dark:bg-[#171E28] dark:placeholder-slate-400 dark:focus:ring-blue-600"
                     placeholder="1.2"
                     bind:value={$rep_pen}
             />
@@ -156,7 +156,7 @@
             <input
                     type="number"
                     id="rep-pen-range"
-                    class="block w-full rounded-lg bg-slate-200 p-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-600 dark:bg-[#0d1117] dark:placeholder-slate-400 dark:focus:ring-blue-600"
+                    class="block w-full rounded-lg bg-slate-200 p-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-600 dark:bg-[#171E28] dark:placeholder-slate-400 dark:focus:ring-blue-600"
                     placeholder="512"
                     bind:value={$rep_pen_range}
             />
