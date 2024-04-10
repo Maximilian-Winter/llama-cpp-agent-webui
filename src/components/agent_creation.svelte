@@ -1,4 +1,31 @@
 <script>
+    import {
+        new_agent_name,
+        new_agent_instructions,
+
+    } from "../stores/app_store.js";
+
+    async function create_new_agent() {
+        if ($new_agent_name === '')
+        {
+            return
+        }
+        const payload = {
+            name: $new_agent_name,
+            instructions: $new_agent_instructions,
+        };
+        const response = await fetch('http://localhost:8000/agents/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload),
+        });
+        new_agent_name.update(() => '')
+        new_agent_instructions.update(() => '')
+
+        console.log(response.json())
+    }
 
 </script>
 
@@ -11,11 +38,11 @@
             <label for="chat-input" class="sr-only">Enter agent name</label>
             <div class="flex gap-x-2">
                 <input
-                        id="chat-input"
+                        id="new-agent-name-input"
                         type="text"
                         class="w-full rounded-lg border border-slate-300 bg-slate-200 p-3 text-sm text-slate-800 shadow-md focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600 dark:border-slate-200/10 dark:bg-[#171E28] dark:text-slate-200 dark:placeholder-slate-400 dark:focus:border-blue-600 sm:text-base"
                         placeholder="Enter agent name"
-
+                        bind:value={$new_agent_name}
                         required
                 />
 
@@ -23,10 +50,11 @@
             <label for="chat-input" class="sr-only">Enter agent instructions</label>
             <div class="flex gap-x-2">
                 <textarea
-                        id="chat-input"
+                        id="new-agent-instructions-input"
                         class="w-full agent-instructions rounded-lg border border-slate-300 bg-slate-200 p-3 text-sm text-slate-800 shadow-md focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600 dark:border-slate-200/10 dark:bg-[#171E28] dark:text-slate-200 dark:placeholder-slate-400 dark:focus:border-blue-600 sm:text-base"
                         placeholder="Enter agent instructions"
                         rows="30"
+                        bind:value={$new_agent_instructions}
                         required
                 />
 
@@ -35,6 +63,7 @@
             <button
                     type="submit"
                     class="rounded-lg border border-transparent bg-blue-600 px-3 py-1 text-slate-200 hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-300"
+                    on:click={create_new_agent}
             >
                 <svg
                         xmlns="http://www.w3.org/2000/svg"

@@ -4,6 +4,7 @@
     import {app_mode, sidebarVisible} from '../stores/app_store.js';
     import Chat from './chat.svelte';
     import AgentCreation from './agent_creation.svelte';
+    import AgentSelection from "./agent_selection.svelte"
 </script>
 
 
@@ -14,6 +15,8 @@
         <AgentCreation/>
     {:else if $app_mode === 'chat'}
         <Chat/>
+    {:else if $app_mode === 'agent_selection'}
+        <AgentSelection></AgentSelection>
     {/if}
 
     {#if $sidebarVisible}

@@ -48,3 +48,7 @@ export let tfsz = writable(1);
 export let rep_pen = writable(1.2);
 export let rep_pen_range = writable(512);
 export let text = writable("");
+
+export let new_agent_name = writable("");
+
+export let new_agent_instructions = writable("");
