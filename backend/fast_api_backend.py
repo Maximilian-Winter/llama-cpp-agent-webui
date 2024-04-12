@@ -22,27 +22,13 @@ from chat_database import ChatDatabase
 
 main_model = LlamaCppEndpointSettings(completions_endpoint_url="http://127.0.0.1:8080/completion")
 wrapped_model = LlamaCppAgent(main_model, debug_output=True,
-                              system_prompt="You are an helpful AI assistant.",
+                              system_prompt="",
                               predefined_messages_formatter_type=MessagesFormatterType.CHATML, )
 settings_dict = {}
 db = ChatDatabase()
 
 
-class Settings(BaseModel):
-    max_tokens: int
-    temperature: float
-    top_p: float
-    top_k: int
-    min_p: float
-    typ_p: float
-    tfsz: float
-    rep_pen: float
-    rep_pen_range: int
 
-
-class GenerationRequest(BaseModel):
-    messages: List[dict]
-    settings: Settings
 
 
 # Pydantic models for validation
@@ -83,9 +69,33 @@ class MessageResponse(BaseModel):
 class ChatResponse(BaseModel):
     id: int
     title: str
+    timestamp: str
     agent: AgentResponse
     messages: List[MessageResponse]
 
+class Settings(BaseModel):
+    max_tokens: int
+    temperature: float
+    top_p: float
+    top_k: int
+    min_p: float
+    typ_p: float
+    tfsz: float
+    rep_pen: float
+    rep_pen_range: int
+
+
+class Message(BaseModel):
+    id: int
+    role: str
+    content: str
+
+
+class GenerationRequest(BaseModel):
+    chat_id: int
+    agent_id: int
+    messages: List[Message]
+    settings: Settings
 
 app = FastAPI()
 
@@ -122,15 +132,31 @@ def get_file(name_file: str):
 
 @app.post("/llama/complete")
 async def complete_llama(request: Request, generationRequest: GenerationRequest):
+    chat_id = generationRequest.chat_id
+    if chat_id == -1:
+        chat_id = db.add_chat_with_agent_id("New Chat", agent_id=generationRequest.agent_id)
+    messages_ids = []
+    converted_messages = []
+
+    for message in generationRequest.messages:
+        if message.id == -1:
+            message_id = db.add_message_with_chat_id(chat_id, message.role, message.content)
+        else:
+            message_id = message.id
+        converted_messages.append({"role": message.role, "content": message.content})
+        messages_ids.append(message_id)
     global settings_dict, wrapped_model
-    wrapped_model.messages = generationRequest.messages
+    agent = db.get_agent_by_id(generationRequest.agent_id)
+    system_message = agent.instructions
+    wrapped_model.system_prompt = system_message
+    wrapped_model.messages = converted_messages
     settings_dict = generationRequest.settings.model_dump()
     settings_dict["n_predict"] = settings_dict.pop("max_tokens")
     settings_dict["tfs_z"] = settings_dict.pop("tfsz")
     settings_dict["repeat_last_n"] = settings_dict.pop("rep_pen_range")
     settings_dict["repeat_penalty"] = settings_dict.pop("rep_pen")
     settings_dict["typical_p"] = settings_dict.pop("typ_p")
-    return {"session_id": "1234"}
+    return {"chat_id": chat_id, "messages": messages_ids}
 
 
 @app.get("/llama/stream")
@@ -151,7 +177,7 @@ async def stream_llama(request: Request):
             text = result
 
             yield {"data": text}
-
+        yield {"data": "GENERATION_STOPPED"}
     return EventSourceResponse(server_sent_events())
 
 
@@ -180,7 +206,7 @@ def create_chat(chat: ChatCreate):
 
 @app.post("/messages/", response_model=MessageResponse)
 def create_message(message: MessageCreate):
-    message_id = db.add_message(message.chat_id, message.role, message.content)
+    message_id = db.add_message_with_chat_id(message.chat_id, message.role, message.content)
     if message_id:
         return {"id": message_id, "chat_id": message.chat_id, "role": message.role, "content": message.content}
     raise HTTPException(status_code=400, detail="Failed to add message.")
@@ -209,6 +235,7 @@ def get_all_chats():
     return [{
         "id": chat.id,
         "title": chat.title,
+        "timestamp": chat.timestamp.strftime("%m/%d/%Y, %H:%M:%S"),
         "agent": {
             "id": chat.agent.id,
             "name": chat.agent.name,

@@ -1,5 +1,6 @@
 <script lang="ts">
-    import {Chat, app_mode, current_chat, sidebarVisible} from "../stores/app_store";
+    import {Chat, app_mode, current_chat, sidebarVisible, Message, chats} from "../stores/app_store";
+    import {onMount} from "svelte";
 
     function enableAgentCreationMode() {
         app_mode.set("agent_creation");
@@ -14,9 +15,32 @@
     function toggleSidebar() {
         sidebarVisible.update((v) => !v);
     }
-    function createChat() {
-        current_chat.set(new Chat());
+
+    async function setCurrentChat(chat: Chat): Promise<void> {
+        current_chat.set(chat)
     }
+
+
+    async function fetchChats(): Promise<Chat[]> {
+        const response = await fetch('http://localhost:8000/chats/');
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return await response.json();
+    }
+
+    onMount(() => {
+        fetchChats()
+            .then(data => {
+                chats.update(chatz => {
+                    chatz.chats = data;
+                    return chatz;
+                });
+            })
+            .catch(error => {
+                console.error('Failed to fetch panels:', error);
+            });
+    });
 </script>
 
 <aside class="flex ">
@@ -40,53 +64,28 @@
                 llama-cpp-agent WebUI
             </h2>
         </div>
-        <div class="mx-2">
-            <!-- remember: new stuff buttons -->
-            <button
-                    class="flex w-full gap-x-4 rounded-lg border border-[#30363d] p-4 text-left text-sm font-medium text-slate-700 transition-colors duration-200 hover:bg-slate-200 focus:outline-none dark:border-[#30363d] dark:text-slate-200 dark:hover:bg-slate-800"
-                    on:click={createChat}
-            >
-                <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        class="h-5 w-5"
-                        viewBox="0 0 24 24"
-                        stroke-width="2"
-                        stroke="currentColor"
-                        fill="none"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                >
-                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-                    <path d="M12 5l0 14"></path>
-                    <path d="M5 12l14 0"></path>
-                </svg>
-                New Chat
-            </button>
-        </div>
         <!-- Previous chats container -->
         <div
                 class="h-1/2 space-y-4 overflow-y-auto border-b border-slate-300 px-2 py-4 dark:border-[#30363d]"
         >
-            <button
-                    class="flex w-full flex-col gap-y-2 rounded-lg px-3 py-2 text-left transition-colors duration-200 hover:bg-slate-200 focus:outline-none dark:hover:bg-slate-800"
-            >
-                <h1
-                        class="text-sm font-medium capitalize text-slate-700 dark:text-slate-200"
-                >
-                    Tailwind Classes
-                </h1>
-                <p class="text-xs text-slate-500 dark:text-slate-400">12 Mar</p>
-            </button>
-            <button
-                    class="flex w-full flex-col gap-y-2 rounded-lg px-3 py-2 text-left transition-colors duration-200 hover:bg-slate-200 focus:outline-none dark:hover:bg-slate-800"
-            >
-                <h1
-                        class="text-sm font-medium capitalize text-slate-700 dark:text-slate-200"
-                >
-                    How to use Tailwind components?
-                </h1>
-                <p class="text-xs text-slate-500 dark:text-slate-400">1 Jan</p>
-            </button>
+            {#each $chats.chats as chat}
+                <div>
+
+                    <button
+                            class="flex w-full flex-col gap-y-2 rounded-lg px-3 py-2 text-left transition-colors duration-200 hover:bg-slate-200 focus:outline-none dark:hover:bg-slate-800"
+                            on:click={() => setCurrentChat(chat)}
+                    >
+                        <h1
+                                class="text-sm font-medium capitalize text-slate-700 dark:text-slate-200"
+                        >
+                            {chat.title}
+                        </h1>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">{chat.timestamp}</p>
+                    </button>
+
+                </div>
+
+            {/each}
         </div>
         <div class="mt-auto w-full space-y-4 px-2 py-4">
             <button

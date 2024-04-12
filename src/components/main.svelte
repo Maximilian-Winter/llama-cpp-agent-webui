@@ -5,6 +5,7 @@
     import Chat from './chat.svelte';
     import AgentCreation from './agent_creation.svelte';
     import AgentSelection from "./agent_selection.svelte"
+
 </script>
 
 
@@ -14,6 +15,7 @@
     {#if $app_mode === 'agent_creation'}
         <AgentCreation/>
     {:else if $app_mode === 'chat'}
+
         <Chat/>
     {:else if $app_mode === 'agent_selection'}
         <AgentSelection></AgentSelection>
