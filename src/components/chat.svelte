@@ -92,7 +92,7 @@
         const source = new EventSource(`http://localhost:8000/llama/stream`);
 
 
-        source.onmessage = function (event) {
+        source.onmessage = async function (event) {
             // Process the event data
             if (event.data === "GENERATION_STOPPED") {
                 source.close()
@@ -101,13 +101,19 @@
                     role: "assistant",
                     content: $current_chat.messages[message_id].content
                 };
-                fetch('http://localhost:8000/messages/', {
+                let response = await fetch('http://localhost:8000/messages/', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify(payload),
                 });
+                await response.json().then((res) => {
+                    current_chat.update(chat => {
+                        chat.messages[message_id].id = res.id;
+                        return chat;
+                    });
+                })
                 return
             }
             current_chat.update(chat => {
