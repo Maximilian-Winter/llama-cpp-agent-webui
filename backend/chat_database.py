@@ -13,6 +13,7 @@ class Agent(Base):
     __tablename__ = 'agents'
     id = Column(Integer, primary_key=True)
     name = Column(String)
+    description = Column(String)
     instructions = Column(String)
     timestamp = Column(DateTime, index=True)
     chat = relationship("Chat", back_populates="agent", uselist=False)
@@ -44,19 +45,22 @@ class ChatDatabase:
         Base.metadata.create_all(self.engine)
         self.Session = scoped_session(sessionmaker(bind=self.engine))
 
-    def add_agent(self, name, instructions):
+    def add_agent(self, name, description, instructions):
         session = self.Session()
-        new_agent = Agent(name=name, timestamp=datetime.datetime.now(), instructions=instructions)
+        new_agent = Agent(name=name, description=description, timestamp=datetime.datetime.now(),
+                          instructions=instructions)
         session.add(new_agent)
         session.commit()
         return new_agent.id
 
-    def update_agent(self, agent_id, name=None, instructions=None):
+    def update_agent(self, agent_id, name=None, description=None, instructions=None):
         session = self.Session()
         agent = session.query(Agent).get(agent_id)
         if agent:
             if name:
                 agent.name = name
+            if description:
+                agent.description = description
             if instructions:
                 agent.instructions = instructions
             session.commit()
@@ -80,28 +84,12 @@ class ChatDatabase:
             print("Agent not found.")
             return None
 
-    def add_chat(self, title, agent_name, agent_instructions):
-        agent_id = self.add_agent(agent_name, agent_instructions)
-        return self.add_chat_with_agent_id(title, agent_id)
-
-    def add_message(self, chat_title, role, content):
-        session = self.Session()
-        chat = session.query(Chat).filter(Chat.title == chat_title).first()
-        if chat:
-            new_message = Message(role=role, content=content)
-            session.add(new_message)
-            session.commit()
-            return new_message.id
-        else:
-            print("Chat not found.")
-            return None
-
     def get_agent_by_id(self, agent_id):
         session = self.Session()
         agent = session.query(Agent).filter(Agent.id == agent_id).first()
         return agent
 
-    def add_message_with_chat_id(self, chat_id, role, content):
+    def add_message(self, chat_id, role, content):
         session = self.Session()
         chat = session.query(Chat).filter(Chat.id == chat_id).first()
         if chat:
@@ -109,6 +97,17 @@ class ChatDatabase:
             session.add(new_message)
             session.commit()
             return new_message.id
+        else:
+            print("Chat not found.")
+            return None
+
+    def set_chat_title(self, chat_id, title):
+        session = self.Session()
+        chat = session.query(Chat).filter(Chat.id == chat_id).first()
+        if chat:
+            chat.title = title
+            session.commit()
+            return True
         else:
             print("Chat not found.")
             return None
@@ -146,6 +145,7 @@ class ChatDatabase:
             agent_details = {
                 "id": chat.agent.id,
                 "name": chat.agent.name,
+                "description": chat.agent.description,
                 "instructions": chat.agent.instructions
             } if chat.agent else None
 
@@ -175,4 +175,4 @@ class ChatDatabase:
 
 if "__main__" == __name__:
     db = ChatDatabase()
-    db.add_agent("Helpful Assistant", "You are a helpful assistant.")
+    db.add_agent("Helpful Assistant", "A helpful assistant", "You are a helpful assistant.")

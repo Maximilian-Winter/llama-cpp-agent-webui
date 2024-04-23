@@ -9,3 +9,4 @@ node_modules
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 /backend/chat_app.db
+/backend/__pycache__

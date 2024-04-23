@@ -1,23 +1,28 @@
 <script>
     import {
-        new_agent_name,
-        new_agent_description,
-        new_agent_instructions,
-
+        current_agent_id,
+        current_agent_name,
+        current_agent_description,
+        current_agent_instructions,
+        app_mode
     } from "../stores/app_store.js";
 
-    async function create_new_agent() {
-        if ($new_agent_name === '')
+    async function update_agent() {
+        if ($current_agent_name === '') {
+            return
+        }
+
+        if ($current_agent_id === -1)
         {
             return
         }
         const payload = {
-            name: $new_agent_name,
-            description: $new_agent_description,
-            instructions: $new_agent_instructions
+            name: $current_agent_name,
+            description: $current_agent_description,
+            instructions: $current_agent_instructions
         };
-        const response = await fetch('http://localhost:8000/agents/', {
-            method: 'POST',
+        const response = await fetch('http://localhost:8000/agents/' + $current_agent_id, {
+            method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
             },
@@ -25,9 +30,7 @@
         });
 
         if (response.ok) {
-            new_agent_name.update(() => '')
-            new_agent_description.update(() => '')
-            new_agent_instructions.update(() => '')
+            app_mode.update(() => 'agent_selection')
         }
     }
 
@@ -46,7 +49,7 @@
                         type="text"
                         class="w-full rounded-lg border border-slate-300 bg-slate-200 p-3 text-sm text-slate-800 shadow-md focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600 dark:border-slate-200/10 dark:bg-[#171E28] dark:text-slate-200 dark:placeholder-slate-400 dark:focus:border-blue-600 sm:text-base"
                         placeholder="Enter agent name"
-                        bind:value={$new_agent_name}
+                        bind:value={$current_agent_name}
                         required
                 />
 
@@ -57,7 +60,7 @@
                         type="text"
                         class="w-full rounded-lg border border-slate-300 bg-slate-200 p-3 text-sm text-slate-800 shadow-md focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600 dark:border-slate-200/10 dark:bg-[#171E28] dark:text-slate-200 dark:placeholder-slate-400 dark:focus:border-blue-600 sm:text-base"
                         placeholder="Enter agent description"
-                        bind:value={$new_agent_description}
+                        bind:value={$current_agent_description}
                         required
                 />
 
@@ -69,7 +72,7 @@
                         class="w-full agent-instructions rounded-lg border border-slate-300 bg-slate-200 p-3 text-sm text-slate-800 shadow-md focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600 dark:border-slate-200/10 dark:bg-[#171E28] dark:text-slate-200 dark:placeholder-slate-400 dark:focus:border-blue-600 sm:text-base"
                         placeholder="Enter agent instructions"
                         rows="30"
-                        bind:value={$new_agent_instructions}
+                        bind:value={$current_agent_instructions}
                         required
                 />
 
@@ -78,7 +81,7 @@
             <button
                     type="submit"
                     class="rounded-lg border border-transparent bg-blue-600 px-3 py-1 text-slate-200 hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-300"
-                    on:click={create_new_agent}
+                    on:click={update_agent}
             >
                 <svg
                         xmlns="http://www.w3.org/2000/svg"

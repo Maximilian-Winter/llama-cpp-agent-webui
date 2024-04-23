@@ -1,7 +1,15 @@
 <script lang="ts">
-    import {Chat, app_mode, current_chat, sidebarVisible, Message, chats} from "../stores/app_store";
+    import {
+        Chat,
+        app_mode,
+        current_chat,
+        sidebarVisible,
+        Message,
+        chats,
+        current_agent_name, current_agent_description, current_agent_instructions, current_agent_id
+    } from "../stores/app_store";
+    import EditChatTitle from './edit_chat.svelte'
     import {onMount} from "svelte";
-
     function enableAgentCreationMode() {
         app_mode.set("agent_creation");
     }
@@ -17,10 +25,53 @@
     }
 
     async function setCurrentChat(chat: Chat): Promise<void> {
-        current_chat.set(chat)
+        current_chat.set(chat);
+        app_mode.set("chat");
     }
 
+    let editingChat = false;
+    let editChat: Chat;
 
+    function editCurrentChat(chat: Chat) {
+        editingChat = true;
+        editChat = chat;
+    }
+    interface SaveEventDetail {
+        id?: number;
+        title?: string;
+    }
+    async function handleSave(e: CustomEvent<SaveEventDetail>) {
+        let id = e.detail.id;
+        let title = e.detail.title;
+        const payload = {};
+        const response = await fetch('http://localhost:8000/chats/' + id + '/' + title, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload),
+        });
+
+        if (response.ok) {
+            app_mode.update(() => 'chat')
+        }
+
+        fetchChats()
+            .then(data => {
+                chats.update(chatz => {
+                    chatz.chats = data;
+                    return chatz;
+                });
+            })
+            .catch(error => {
+                console.error('Failed to fetch panels:', error);
+            });
+        editingChat = false;
+    }
+
+    function handleClose() {
+        editingChat = false;
+    }
     async function fetchChats(): Promise<Chat[]> {
         const response = await fetch('http://localhost:8000/chats/');
         if (!response.ok) {
@@ -69,10 +120,10 @@
                 class="h-1/2 space-y-4 overflow-y-auto border-b border-slate-300 px-2 py-4 dark:border-[#30363d]"
         >
             {#each $chats.chats as chat}
-                <div>
+                <div class="flex flex-row">
 
                     <button
-                            class="flex w-full flex-col gap-y-2 rounded-lg px-3 py-2 text-left transition-colors duration-200 hover:bg-slate-200 focus:outline-none dark:hover:bg-slate-800"
+                            class="flex w-5/6 flex-col gap-y-2 rounded-lg px-3 py-2 text-left transition-colors duration-200 hover:bg-slate-200 focus:outline-none dark:hover:bg-slate-800"
                             on:click={() => setCurrentChat(chat)}
                     >
                         <h1
@@ -82,11 +133,23 @@
                         </h1>
                         <p class="text-xs text-slate-500 dark:text-slate-400">{chat.timestamp}</p>
                     </button>
-
+                    <button
+                            class="flex w-1/6 flex-row gap-y-2 rounded-lg px-3 py-2 transition-colors duration-200 hover:bg-green-800 focus:outline-none dark:hover:bg-green-800"
+                            on:click={() => editCurrentChat(chat)}
+                    >
+                        <h1
+                                class="text-sm m-auto font-medium capitalize text-slate-700 dark:text-slate-200"
+                        >
+                            Edit
+                        </h1>
+                    </button>
                 </div>
 
             {/each}
         </div>
+        {#if editingChat}
+            <EditChatTitle chat={editChat} on:save={handleSave} on:close={handleClose}/>
+        {/if}
         <div class="mt-auto w-full space-y-4 px-2 py-4">
             <button
                     class="flex w-full gap-x-2 rounded-lg px-3 py-2 text-left text-sm font-medium text-slate-700 transition-colors duration-200 hover:bg-slate-200 focus:outline-none dark:text-slate-200 dark:hover:bg-slate-800"

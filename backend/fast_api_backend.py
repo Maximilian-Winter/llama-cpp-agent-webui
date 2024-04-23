@@ -23,22 +23,21 @@ from chat_database import ChatDatabase
 main_model = LlamaCppEndpointSettings(completions_endpoint_url="http://127.0.0.1:8080/completion")
 wrapped_model = LlamaCppAgent(main_model, debug_output=True,
                               system_prompt="",
-                              predefined_messages_formatter_type=MessagesFormatterType.CHATML, )
+                              predefined_messages_formatter_type=MessagesFormatterType.NEURAL_CHAT, )
 settings_dict = {}
 db = ChatDatabase()
-
-
-
 
 
 # Pydantic models for validation
 class AgentCreate(BaseModel):
     name: str
+    description: str
     instructions: str
 
 
 class AgentUpdate(BaseModel):
     name: Optional[str] = None
+    description: Optional[str] = None
     instructions: Optional[str] = None
 
 
@@ -56,6 +55,7 @@ class MessageCreate(BaseModel):
 class AgentResponse(BaseModel):
     id: int
     name: str
+    description: str
     instructions: str
 
 
@@ -72,6 +72,7 @@ class ChatResponse(BaseModel):
     timestamp: str
     agent: AgentResponse
     messages: List[MessageResponse]
+
 
 class Settings(BaseModel):
     max_tokens: int
@@ -97,6 +98,7 @@ class GenerationRequest(BaseModel):
     messages: List[Message]
     settings: Settings
 
+
 app = FastAPI()
 
 origins = [
@@ -118,7 +120,8 @@ templates = Jinja2Templates(directory="templates")
 
 @app.get("/", response_class=HTMLResponse)
 async def llama(request: Request):
-    return templates.TemplateResponse("../src/index.html", {"request": request})
+    return {"error": "File not found!"}
+    # return templates.TemplateResponse("../src/a.html", {"request": request})
 
 
 # Serve files
@@ -128,6 +131,7 @@ def get_file(name_file: str):
         return FileResponse(path=os.getcwd() + "../static/" + name_file)
     else:
         print("File: " + name_file + "doesn't exist!")
+    return {"error": "File not found!"}
 
 
 @app.post("/llama/complete")
@@ -140,7 +144,7 @@ async def complete_llama(request: Request, generationRequest: GenerationRequest)
 
     for message in generationRequest.messages:
         if message.id == -1:
-            message_id = db.add_message_with_chat_id(chat_id, message.role, message.content)
+            message_id = db.add_message(chat_id, message.role, message.content)
         else:
             message_id = message.id
         converted_messages.append({"role": message.role, "content": message.content})
@@ -164,7 +168,7 @@ async def stream_llama(request: Request):
     global settings_dict, wrapped_model
 
     async def async_generator():
-        for item in wrapped_model.get_chat_response_generator(penalize_nl=False, yield_streaming_responses=True,
+        for item in wrapped_model.get_chat_response_generator(penalize_nl=False,
                                                               **settings_dict):
             yield item
 
@@ -178,13 +182,14 @@ async def stream_llama(request: Request):
 
             yield {"data": text}
         yield {"data": "GENERATION_STOPPED"}
+
     return EventSourceResponse(server_sent_events())
 
 
 # Endpoints
 @app.post("/agents/", response_model=AgentResponse)
 def create_agent(agent: AgentCreate):
-    agent_id = db.add_agent(agent.name, agent.instructions)
+    agent_id = db.add_agent(agent.name, agent.description, agent.instructions)
     if agent_id:
         return {"id": agent_id, "name": agent.name, "instructions": agent.instructions}
     raise HTTPException(status_code=400, detail="Failed to create agent.")
@@ -192,7 +197,7 @@ def create_agent(agent: AgentCreate):
 
 @app.put("/agents/{agent_id}")
 def update_agent(agent_id: int, agent: AgentUpdate):
-    db.update_agent(agent_id, agent.name, agent.instructions)
+    db.update_agent(agent_id, agent.name, agent.description, agent.instructions)
     return {"message": "Agent updated successfully."}
 
 
@@ -206,7 +211,7 @@ def create_chat(chat: ChatCreate):
 
 @app.post("/messages/", response_model=MessageResponse)
 def create_message(message: MessageCreate):
-    message_id = db.add_message_with_chat_id(message.chat_id, message.role, message.content)
+    message_id = db.add_message(message.chat_id, message.role, message.content)
     if message_id:
         return {"id": message_id, "chat_id": message.chat_id, "role": message.role, "content": message.content}
     raise HTTPException(status_code=400, detail="Failed to add message.")
@@ -220,11 +225,20 @@ def get_chat(chat_id: int):
     raise HTTPException(status_code=404, detail="Chat not found.")
 
 
+@app.put("/chats/{chat_id}/{title}")
+def get_chat(chat_id: int, title: str):
+    result = db.set_chat_title(chat_id, title)  # You need to implement this method in ChatDatabase
+    if result:
+        return {"message": "Title changed successfully."}
+    raise HTTPException(status_code=404, detail="Chat not found.")
+
+
 # Fetch all agents
 @app.get("/agents/", response_model=List[AgentResponse])
 def get_all_agents():
     agents = db.get_all_agents()
-    return [{"id": agent.id, "name": agent.name, "instructions": agent.instructions} for agent in agents]
+    return [{"id": agent.id, "name": agent.name, "description": agent.description, "instructions": agent.instructions}
+            for agent in agents]
 
 
 # Fetch all chats
@@ -239,6 +253,7 @@ def get_all_chats():
         "agent": {
             "id": chat.agent.id,
             "name": chat.agent.name,
+            "description": chat.agent.description,
             "instructions": chat.agent.instructions
         } if chat.agent else None,
         "messages": [{

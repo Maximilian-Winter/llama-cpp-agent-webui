@@ -68,5 +68,16 @@ export let text = writable("");
 export let new_agent_name = writable("");
 
 export let new_agent_instructions = writable("");
+
+export let new_agent_description = writable("");
+
+export let current_agent_id = writable(-1);
+
+export let current_agent_name = writable("");
+
+export let current_agent_instructions = writable("");
+
+export let current_agent_description = writable("");
+
 export let chats = writable(new Chats());
 
