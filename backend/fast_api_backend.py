@@ -191,7 +191,7 @@ async def stream_llama(request: Request):
 def create_agent(agent: AgentCreate):
     agent_id = db.add_agent(agent.name, agent.description, agent.instructions)
     if agent_id:
-        return {"id": agent_id, "name": agent.name, "instructions": agent.instructions}
+        return {"id": agent_id, "name": agent.name, "description": agent.description, "instructions": agent.instructions}
     raise HTTPException(status_code=400, detail="Failed to create agent.")
 
 
