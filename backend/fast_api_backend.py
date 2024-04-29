@@ -23,7 +23,7 @@ from chat_database import ChatDatabase
 main_model = LlamaCppEndpointSettings(completions_endpoint_url="http://127.0.0.1:8080/completion")
 wrapped_model = LlamaCppAgent(main_model, debug_output=True,
                               system_prompt="",
-                              predefined_messages_formatter_type=MessagesFormatterType.NEURAL_CHAT, )
+                              predefined_messages_formatter_type=MessagesFormatterType.CHATML, )
 settings_dict = {}
 db = ChatDatabase()
 
