@@ -151,7 +151,7 @@
             <EditChatTitle chat={editChat} on:save={handleSave} on:close={handleClose}/>
         {/if}
         <div class="mt-auto w-full space-y-4 px-2 py-4">
-            
+
             <button
                     class="flex w-full gap-x-2 rounded-lg px-3 py-2 text-left text-sm font-medium text-slate-700 transition-colors duration-200 hover:bg-slate-200 focus:outline-none dark:text-slate-200 dark:hover:bg-slate-800"
                     on:click={enableChatMode}
