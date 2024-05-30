@@ -14,17 +14,19 @@ from starlette.responses import FileResponse, JSONResponse
 
 from pydantic import BaseModel
 
+from llama_cpp_agent.chat_history import BasicChatHistory
+from llama_cpp_agent.chat_history.messages import Roles
 from llama_cpp_agent.llm_agent import LlamaCppAgent
-from llama_cpp_agent.providers.llama_cpp_endpoint_provider import LlamaCppEndpointSettings
+from llama_cpp_agent.providers import LlamaCppServerProvider
 from llama_cpp_agent.messages_formatter import MessagesFormatterType
 
 from chat_database import ChatDatabase
 
-main_model = LlamaCppEndpointSettings(completions_endpoint_url="http://127.0.0.1:8080/completion")
-wrapped_model = LlamaCppAgent(main_model, debug_output=True,
-                              system_prompt="",
-                              predefined_messages_formatter_type=MessagesFormatterType.CHATML, )
-settings_dict = {}
+provider = LlamaCppServerProvider(server_address="http://127.0.0.1:8080")
+llama_cpp_agent = LlamaCppAgent(provider, debug_output=True,
+                                system_prompt="",
+                                predefined_messages_formatter_type=MessagesFormatterType.MISTRAL, )
+llm_sampling_settings = provider.get_provider_default_settings()
 db = ChatDatabase()
 
 
@@ -74,6 +76,11 @@ class ChatResponse(BaseModel):
     messages: List[MessageResponse]
 
 
+class Message(BaseModel):
+    id: int
+    role: str
+    content: str
+
 class Settings(BaseModel):
     max_tokens: int
     temperature: float
@@ -85,11 +92,6 @@ class Settings(BaseModel):
     rep_pen: float
     rep_pen_range: int
 
-
-class Message(BaseModel):
-    id: int
-    role: str
-    content: str
 
 
 class GenerationRequest(BaseModel):
@@ -141,35 +143,38 @@ async def complete_llama(request: Request, generationRequest: GenerationRequest)
         chat_id = db.add_chat_with_agent_id("New Chat", agent_id=generationRequest.agent_id)
     messages_ids = []
     converted_messages = []
+    global llm_sampling_settings, llama_cpp_agent
+    llama_cpp_agent.chat_history = BasicChatHistory()
+    agent = db.get_agent_by_id(generationRequest.agent_id)
+    system_message = agent.instructions
+    llama_cpp_agent.system_prompt = system_message
+
+    llama_cpp_agent.chat_history.add_message({"role": Roles.system, "content": system_message})
 
     for message in generationRequest.messages:
         if message.id == -1:
             message_id = db.add_message(chat_id, message.role, message.content)
         else:
             message_id = message.id
-        converted_messages.append({"role": message.role, "content": message.content})
+        llama_cpp_agent.chat_history.add_message({"role": Roles(message.role), "content": message.content})
         messages_ids.append(message_id)
-    global settings_dict, wrapped_model
-    agent = db.get_agent_by_id(generationRequest.agent_id)
-    system_message = agent.instructions
-    wrapped_model.system_prompt = system_message
-    wrapped_model.messages = converted_messages
+
     settings_dict = generationRequest.settings.model_dump()
-    settings_dict["n_predict"] = settings_dict.pop("max_tokens")
-    settings_dict["tfs_z"] = settings_dict.pop("tfsz")
-    settings_dict["repeat_last_n"] = settings_dict.pop("rep_pen_range")
-    settings_dict["repeat_penalty"] = settings_dict.pop("rep_pen")
-    settings_dict["typical_p"] = settings_dict.pop("typ_p")
+
+    llm_sampling_settings.n_predict = settings_dict.pop("max_tokens")
+    llm_sampling_settings.tfs_z = settings_dict.pop("tfsz")
+    llm_sampling_settings.repeat_last_n = settings_dict.pop("rep_pen_range")
+    llm_sampling_settings.repeat_penalty = settings_dict.pop("rep_pen")
+    llm_sampling_settings.typical_p = settings_dict.pop("typ_p")
     return {"chat_id": chat_id, "messages": messages_ids}
 
 
 @app.get("/llama/stream")
 async def stream_llama(request: Request):
-    global settings_dict, wrapped_model
+    global llm_sampling_settings, llama_cpp_agent
 
     async def async_generator():
-        for item in wrapped_model.get_chat_response_generator(penalize_nl=False,
-                                                              **settings_dict):
+        for item in llama_cpp_agent.get_chat_response(returns_streaming_generator=True, llm_sampling_settings=llm_sampling_settings):
             yield item
 
     async def server_sent_events():
@@ -302,4 +307,4 @@ if __name__ == "__main__":
     import os
     import uvicorn
 
-    uvicorn.run(app, host=os.getenv("HOST", "localhost"), port=os.getenv("PORT", 8000))
+    uvicorn.run(app, host=os.getenv("HOST", "localhost"), port=os.getenv("PORT", 8042))
