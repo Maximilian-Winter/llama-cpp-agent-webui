@@ -17,14 +17,63 @@
     function enableAgentSelectionMode() {
         app_mode.set("agent_selection");
     }
+    async function start_chat(): Promise<void> {
+
+        const payload = {
+            title: "New Chat",
+            agent_id: $current_agent_id
+        };
+        const response = await fetch('http://localhost:8042/chats/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload),
+        });
+        if (response.ok) {
+            let new_chat = await response.json()
+            current_chat.set(new Chat(new_chat.id, new_chat.title, new_chat.agent, new_chat.instructions));
+            current_chat.update(chat => {
+                const newMessage = new Message(-1, "system", new_chat.agent.instructions);
+                chat.messages.push(newMessage);
+                return chat;
+            });
+            handleNewChat();
+            app_mode.set("chat");
+        }
+
+    }
     function enableChatMode() {
-        app_mode.set("chat");
+        if($current_chat.messages.length != 0 || $current_agent_id != $current_chat.agent.id)
+        {
+            start_chat();
+        }
     }
     function toggleSidebar() {
         sidebarVisible.update((v) => !v);
     }
 
+    export function handleNewChat() {
+        fetchChats()
+            .then(data => {
+            chats.update(chatz => {
+                chatz.chats = data;
+                return chatz;
+                });
+            })
+            .catch(error => {
+                console.error('Failed to fetch panels:', error);
+            });
+    }
+
     async function setCurrentChat(chat: Chat): Promise<void> {
+        const response = await fetch('http://localhost:8042/chats/' + chat.id, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+        chat = await response.json();
         current_chat.set(chat);
         app_mode.set("chat");
     }
@@ -44,7 +93,7 @@
         let id = e.detail.id;
         let title = e.detail.title;
         const payload = {};
-        const response = await fetch('http://localhost:8000/chats/' + id + '/' + title, {
+        const response = await fetch('http://localhost:8042/chats/' + id + '/' + title, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -73,7 +122,7 @@
         editingChat = false;
     }
     async function fetchChats(): Promise<Chat[]> {
-        const response = await fetch('http://localhost:8000/chats/');
+        const response = await fetch('http://localhost:8042/chats/');
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -92,9 +141,16 @@
                 console.error('Failed to fetch panels:', error);
             });
     });
+
+    $: sortedChats = $chats.chats.sort((a, b) => {
+        const dateA = new Date(a.timestamp);
+        const dateB = new Date(b.timestamp);
+        return dateB.getTime() - dateA.getTime();
+    });
+
 </script>
 
-<aside class="flex ">
+<aside class="flex overflow-y-auto">
     <div
             class="flex h-[100svh] border-r border-slate-300 w-60 2xl:w-96 flex-col overflow-y-auto bg-slate-50 pt-8 dark:border-slate-700 dark:bg-[#05060a] sm:h-[100vh] sm:w-64"
     >
@@ -119,7 +175,7 @@
         <div
                 class="h-1/2 space-y-4 overflow-y-auto border-b border-slate-300 px-2 py-4 dark:border-[#30363d]"
         >
-            {#each $chats.chats as chat}
+            {#each sortedChats as chat}
                 <div class="flex flex-row">
 
                     <button
@@ -246,3 +302,32 @@
         </div>
     </div>
 </aside>
+
+<style lang="scss">
+  /* Custom scrollbar styles */
+  ::-webkit-scrollbar {
+    width: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background-color: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background-color: rgba(128, 127, 127, 0.3);
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(96, 96, 96, 0.5);
+  }
+
+  /* Dark mode scrollbar styles */
+  .dark ::-webkit-scrollbar-thumb {
+    background-color: rgba(255, 255, 255, 0.3);
+  }
+
+  .dark ::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(255, 255, 255, 0.5);
+  }
+</style>

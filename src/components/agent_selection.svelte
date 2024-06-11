@@ -10,7 +10,9 @@
         Message,
         text
     } from "../stores/app_store";
+    import { createEventDispatcher } from 'svelte';
 
+    const dispatch = createEventDispatcher();
     type Panel = {
         id: number;
         name: string;
@@ -27,7 +29,7 @@
         app_mode.set("agent_update")
     }
     async function fetchPanelData(): Promise<Panel[]> {
-        const response = await fetch('http://localhost:8000/agents/');
+        const response = await fetch('http://localhost:8042/agents/');
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -38,7 +40,8 @@
             title: "New Chat",
             agent_id: id
         };
-        const response = await fetch('http://localhost:8000/chats/', {
+        current_agent_id.set(id)
+        const response = await fetch('http://localhost:8042/chats/', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -53,7 +56,7 @@
                 chat.messages.push(newMessage);
                 return chat;
             });
-
+            dispatch('newChat');
             app_mode.set("chat");
         }
 

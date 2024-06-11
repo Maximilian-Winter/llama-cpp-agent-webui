@@ -2,7 +2,6 @@ import asyncio
 import json
 from typing import List, Optional
 
-from llama_cpp import Llama, LlamaCache
 from sse_starlette import EventSourceResponse
 from fastapi import FastAPI, Request, File, Form, UploadFile, HTTPException
 from fastapi.responses import HTMLResponse
@@ -81,6 +80,7 @@ class Message(BaseModel):
     role: str
     content: str
 
+
 class Settings(BaseModel):
     max_tokens: int
     temperature: float
@@ -91,7 +91,6 @@ class Settings(BaseModel):
     tfsz: float
     rep_pen: float
     rep_pen_range: int
-
 
 
 class GenerationRequest(BaseModel):
@@ -174,7 +173,8 @@ async def stream_llama(request: Request):
     global llm_sampling_settings, llama_cpp_agent
 
     async def async_generator():
-        for item in llama_cpp_agent.get_chat_response(returns_streaming_generator=True, llm_sampling_settings=llm_sampling_settings):
+        for item in llama_cpp_agent.get_chat_response(returns_streaming_generator=True,
+                                                      llm_sampling_settings=llm_sampling_settings):
             yield item
 
     async def server_sent_events():
@@ -196,7 +196,8 @@ async def stream_llama(request: Request):
 def create_agent(agent: AgentCreate):
     agent_id = db.add_agent(agent.name, agent.description, agent.instructions)
     if agent_id:
-        return {"id": agent_id, "name": agent.name, "description": agent.description, "instructions": agent.instructions}
+        return {"id": agent_id, "name": agent.name, "description": agent.description,
+                "instructions": agent.instructions}
     raise HTTPException(status_code=400, detail="Failed to create agent.")
 
 

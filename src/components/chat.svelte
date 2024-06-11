@@ -12,7 +12,9 @@
         typ_p,
         chats
     } from "../stores/app_store.js";
+    import { createEventDispatcher } from 'svelte';
 
+    const dispatch = createEventDispatcher();
     async function handleKeydown(event: KeyboardEvent): Promise<void> {
         if (event.key === 'Enter' && !event.shiftKey ) {
             await send_message()
@@ -47,7 +49,7 @@
                 "rep_pen_range": $rep_pen_range,
             }
         };
-        const response = await fetch('http://localhost:8000/llama/complete', {
+        const response = await fetch('http://localhost:8042/llama/complete', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -63,6 +65,10 @@
 
         text.update(() => '');
         if (response.ok) {
+            if( $current_chat.id == -1)
+            {
+                dispatch('newChat');
+            }
             let data = await response.json()
             subscribeToUpdates($current_chat.messages.length - 1, data.chat_id, data.messages);
         } else {
@@ -89,7 +95,7 @@
             return chat;
         });
 
-        const source = new EventSource(`http://localhost:8000/llama/stream`);
+        const source = new EventSource(`http://localhost:8042/llama/stream`);
 
 
         source.onmessage = async function (event) {
@@ -101,7 +107,7 @@
                     role: "assistant",
                     content: $current_chat.messages[message_id].content
                 };
-                let response = await fetch('http://localhost:8000/messages/', {
+                let response = await fetch('http://localhost:8042/messages/', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',

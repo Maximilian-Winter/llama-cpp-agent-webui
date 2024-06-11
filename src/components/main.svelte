@@ -6,20 +6,27 @@
     import AgentCreation from './agent_creation.svelte';
     import AgentSelection from "./agent_selection.svelte"
     import AgentUpdate from "./agent_update.svelte";
+
+    function newChat() {
+
+        sidebar.handleNewChat();
+    }
+
+    let sidebar: App_sidebar;
 </script>
 
 
 <div class="flex flex-row bg-[#05060a]">
     <!-- Sidebar -->
-    <App_sidebar/>
+    <App_sidebar bind:this={sidebar}/>
     {#if $app_mode === 'agent_creation'}
         <AgentCreation/>
     {:else if $app_mode === 'chat'}
-        <Chat/>
+        <Chat on:newChat={newChat}/>
     {:else if $app_mode === 'agent_update'}
         <AgentUpdate/>
     {:else if $app_mode === 'agent_selection'}
-        <AgentSelection></AgentSelection>
+        <AgentSelection on:newChat={newChat}/>
     {/if}
 
     {#if $sidebarVisible}
