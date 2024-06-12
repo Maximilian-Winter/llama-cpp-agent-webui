@@ -144,193 +144,83 @@
 
 <!-- Prompt Messages Container - Modify the height according to your need -->
 <div class="flex h-[97vh] w-full flex-col">
-    <!-- Prompt Messages -->
-    <div
-            class="flex-1 overflow-y-auto bg-[#0d1117] text-sm leading-6 text-slate-900 shadow-md dark:bg-[#0d1117] dark:text-slate-300 sm:text-base sm:leading-7"
-    >
-        <div class="p-10 w-full h-fit font-bold text-stone-300 border-b-2 border-gray-400">
-            <h2 class="text-2xl">{$current_chat.agent.name}</h2>
+    <div class="flex-1 overflow-y-auto bg-[#0d1117] text-sm leading-6 text-slate-300 shadow-md sm:text-base sm:leading-7">
+        <div class="sticky top-0 z-10 w-full border-b border-slate-700 bg-[#161b22] p-4 text-lg font-bold text-slate-200">
+            <h2>{$current_chat.agent.name}</h2>
         </div>
         {#if $current_chat}
             {#each $current_chat.messages as message, index}
                 {#if message.role === "user"}
-                    <div class="flex px-4 py-8 sm:px-6">
-                        <img
-                                class="mr-2 flex h-8 w-8 rounded-full sm:mr-4"
-                                src="https://dummyimage.com/256x256/354ea1/ffffff&text=U"
-                                alt="User"
-                        />
-
-                        <div
-                                class="flex w-full flex-col items-start lg:flex-row lg:justify-between"
-                        >
-
-                            <div class="flex max-w-3xl items-center message">
-                                {message.content.trim()}
+                    <div class="flex gap-4 px-4 py-6 sm:px-6">
+                        <img class="h-10 w-10 flex-shrink-0 rounded-full" src="https://dummyimage.com/256x256/354ea1/ffffff&text=U" alt="User" />
+                        <div class="flex w-full flex-col gap-2">
+                            <div class="flex justify-between">
+                                <div class="flex items-center gap-2">
+                                    <span class="font-bold text-slate-200">User</span>
+                                    <span class="text-xs text-slate-400">{new Date().toLocaleString()}</span>
+                                </div>
+                                <div class="flex gap-2">
+                                    <button class="text-slate-400 hover:text-blue-500" title="Copy">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                        </svg>
+                                    </button>
+                                    <button class="text-slate-400 hover:text-blue-500" title="Edit">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                        </svg>
+                                    </button>
+                                </div>
                             </div>
-
-                            <div
-                                    class="mt-4 flex flex-row justify-start gap-x-2 text-slate-500 lg:mt-0"
-                            >
-                                <button class="hover:text-blue-600" type="button">
-                                    <svg
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            class="h-5 w-5"
-                                            viewBox="0 0 24 24"
-                                            stroke-width="2"
-                                            stroke="currentColor"
-                                            fill="none"
-                                            stroke-linecap="round"
-                                            stroke-linejoin="round"
-                                    >
-                                        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-                                        <path
-                                                d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"
-                                        ></path>
-                                        <path
-                                                d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"
-                                        ></path>
-                                    </svg>
-
-                                </button>
-                                <button class="hover:text-blue-600" type="button">
-                                    <svg class="w-6 h-6" aria-hidden="true"
-                                         xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none"
-                                         viewBox="0 0 24 24">
-                                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
-                                              stroke-width="2" fill="none"
-                                              d="m14.304 4.844 2.852 2.852M7 7H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h11a1 1 0 0 0 1-1v-4.5m2.409-9.91a2.017 2.017 0 0 1 0 2.853l-6.844 6.844L8 14l.713-3.565 6.844-6.844a2.015 2.015 0 0 1 2.852 0Z"/>
-                                    </svg>
-
-                                </button>
-
-                            </div>
+                            <div class="message text-slate-200">{message.content.trim()}</div>
                         </div>
                     </div>
-
                 {:else if message.role === "system"}
                     <div></div>
                 {:else}
-                    <div class="flex bg-slate-100 px-4 py-8 dark:bg-slate-900 sm:px-6">
-                        <img
-                                class="mr-2 flex h-8 w-8 rounded-full sm:mr-4"
-                                src="https://dummyimage.com/256x256/354ea1/ffffff&text=AI"
-                                alt="AI"
-                        />
-
-                        <div
-                                class="flex w-full flex-col items-start lg:flex-row lg:justify-between"
-                        >
-
-                            <div class="flex max-w-3xl items-center message">
-                                {message.content.trim()}
+                    <div class="flex gap-4 bg-[#1c2128] px-4 py-6 sm:px-6">
+                        <img class="h-10 w-10 flex-shrink-0 rounded-full" src="https://dummyimage.com/256x256/354ea1/ffffff&text=AI" alt="AI" />
+                        <div class="flex w-full flex-col gap-2">
+                            <div class="flex justify-between">
+                                <div class="flex items-center gap-2">
+                                    <span class="font-bold text-slate-200">AI</span>
+                                    <span class="text-xs text-slate-400">{new Date().toLocaleString()}</span>
+                                </div>
+                                <div class="flex gap-2">
+                                    <button class="text-slate-400 hover:text-blue-500" title="Copy">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                        </svg>
+                                    </button>
+                                    <button class="text-slate-400 hover:text-blue-500" title="Edit">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                        </svg>
+                                    </button>
+                                </div>
                             </div>
-
-                            <div
-                                    class="mt-4 flex flex-row justify-start gap-x-2 text-slate-500 lg:mt-0"
-                            >
-                                <button class="hover:text-blue-600" type="button">
-                                    <svg
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            class="h-5 w-5"
-                                            viewBox="0 0 24 24"
-                                            stroke-width="2"
-                                            stroke="currentColor"
-                                            fill="none"
-                                            stroke-linecap="round"
-                                            stroke-linejoin="round"
-                                    >
-                                        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-                                        <path
-                                                d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"
-                                        ></path>
-                                        <path
-                                                d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"
-                                        ></path>
-                                    </svg>
-
-                                </button>
-                                <button class="hover:text-blue-600" type="button">
-                                    <svg class="w-6 h-6" aria-hidden="true"
-                                         xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none"
-                                         viewBox="0 0 24 24">
-                                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
-                                              stroke-width="2" fill="none"
-                                              d="m14.304 4.844 2.852 2.852M7 7H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h11a1 1 0 0 0 1-1v-4.5m2.409-9.91a2.017 2.017 0 0 1 0 2.853l-6.844 6.844L8 14l.713-3.565 6.844-6.844a2.015 2.015 0 0 1 2.852 0Z"/>
-                                    </svg>
-
-                                </button>
-
-                            </div>
+                            <div class="message text-slate-200">{message.content.trim()}</div>
                         </div>
                     </div>
                 {/if}
             {/each}
         {/if}
     </div>
-    <!-- Prompt message input -->
-    <form
-            class="flex w-full items-center rounded-b-md border-t border-slate-300 bg-slate-200 p-8 pb-0 dark:border-[#30363d] dark:bg-[#05060a]"
-    >
-        <label for="chat-input" class="sr-only">Enter your prompt</label>
-        <div>
-            <button
-                    class="hover:text-blue-600 dark:text-slate-200 dark:hover:text-blue-600 sm:p-2"
-                    type="button"
-            >
-                <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        class="h-6 w-6"
-                        aria-hidden="true"
-                        viewBox="0 0 24 24"
-                        stroke-width="2"
-                        stroke="currentColor"
-                        fill="none"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                >
-                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-                    <path d="M12 5l0 14"></path>
-                    <path d="M5 12l14 0"></path>
-                </svg>
-                <span class="sr-only">Add</span>
-            </button>
-        </div>
-        <textarea
-                id="chat-input"
-                rows="3"
-                class="prompt-input mx-6 p-2 flex min-h-full w-full rounded-md border border-slate-300 bg-slate-50 text-base text-slate-900 placeholder-slate-400 focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600 dark:border-[#30363d] dark:bg-[#171E28] dark:text-slate-50 dark:placeholder-slate-400 dark:focus:border-blue-600 dark:focus:ring-blue-600"
-                placeholder="Enter your prompt"
-                bind:value={$text}
-                on:keydown={handleKeydown}
-        ></textarea>
-        <div>
-            <button
-                    class="inline-flex hover:text-blue-600 dark:text-slate-200 dark:hover:text-blue-600 sm:p-2"
-                    on:click={send_message}
-            >
-                <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        class="h-6 w-6"
-                        aria-hidden="true"
-                        viewBox="0 0 24 24"
-                        stroke-width="2"
-                        stroke="currentColor"
-                        fill="none"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                >
-                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-                    <path d="M10 14l11 -11"></path>
-                    <path
-                            d="M21 3l-6.5 18a.55 .55 0 0 1 -1 0l-3.5 -7l-7 -3.5a.55 .55 0 0 1 0 -1l18 -6.5"
-                    ></path>
-                </svg>
-                <span class="sr-only">Send message</span>
-            </button>
-        </div>
+    <form class="flex items-center gap-4 border-t border-slate-700 bg-[#0d1117] p-4">
+        <button class="text-slate-400 hover:text-blue-500" type="button" title="Add">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            </svg>
+        </button>
+        <textarea id="chat-input" rows="3" class="prompt-input w-full h-fit flex-grow resize-none rounded-md border border-slate-700 bg-[#1c2128] p-2 text-base text-slate-200 placeholder-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500" placeholder="Enter your prompt" bind:value={$text} on:keydown={handleKeydown}></textarea>
+        <button class="text-slate-400 hover:text-blue-500" on:click={send_message} title="Send">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7" />
+            </svg>
+        </button>
     </form>
 </div>
+
 
 <style>
     .message {

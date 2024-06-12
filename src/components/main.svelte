@@ -16,7 +16,7 @@
 </script>
 
 
-<div class="flex flex-row bg-[#05060a]">
+<div class="flex flex-row bg-[#0d1117]">
     <!-- Sidebar -->
     <App_sidebar bind:this={sidebar}/>
     {#if $app_mode === 'agent_creation'}

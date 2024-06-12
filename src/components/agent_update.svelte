@@ -36,61 +36,57 @@
 
 </script>
 
-<div class="flex h-screen w-full flex-col">
-    <!-- Prompt Messages -->
-    <div class="m-8 flex-1 overflow-y-auto bg-[#0d1117] p-4 text-sm leading-6 text-slate-900 shadow-md dark:bg-[#0d1117] dark:text-slate-300 sm:text-base sm:leading-7">
-        <form class="flex flex-col gap-4">
-            <label for="new-agent-name-input" class="sr-only">Enter agent name</label>
-            <input
-                    id="new-agent-name-input"
-                    type="text"
-                    class="w-full rounded-lg border border-slate-300 bg-slate-200 px-4 py-2 text-sm text-slate-800 shadow-md focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600 dark:border-slate-200/10 dark:bg-[#171E28] dark:text-slate-200 dark:placeholder-slate-400 dark:focus:border-blue-600 sm:text-base"
-                    placeholder="Enter agent name"
-                    bind:value={$current_agent_name}
-                    required
-            />
+<div class="flex min-h-screen w-full flex-col bg-[#0d1117] text-slate-300">
+    <div class="mx-auto w-full max-w-3xl px-4 py-8">
+        <h1 class="mb-8 text-3xl font-bold">Update Agent</h1>
+        <form class="space-y-6" on:submit|preventDefault={update_agent}>
+            <div>
+                <label for="new-agent-name-input" class="block text-sm font-medium">Agent Name</label>
+                <input
+                        id="new-agent-name-input"
+                        type="text"
+                        class="mt-1 block w-full rounded-md border-gray-300 bg-[#161b22] px-4 py-2 text-slate-200 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                        placeholder="Enter agent name"
+                        bind:value={$current_agent_name}
+                        required
+                />
+            </div>
 
-            <label for="new-agent-description-input" class="sr-only">Enter agent description</label>
-            <input
-                    id="new-agent-description-input"
-                    type="text"
-                    class="w-full rounded-lg border border-slate-300 bg-slate-200 px-4 py-2 text-sm text-slate-800 shadow-md focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600 dark:border-slate-200/10 dark:bg-[#171E28] dark:text-slate-200 dark:placeholder-slate-400 dark:focus:border-blue-600 sm:text-base"
-                    placeholder="Enter agent description"
-                    bind:value={$current_agent_description}
-                    required
-            />
+            <div>
+                <label for="new-agent-description-input" class="block text-sm font-medium">Agent Description</label>
+                <input
+                        id="new-agent-description-input"
+                        type="text"
+                        class="mt-1 block w-full rounded-md border-gray-300 bg-[#161b22] px-4 py-2 text-slate-200 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                        placeholder="Enter agent description"
+                        bind:value={$current_agent_description}
+                        required
+                />
+            </div>
 
-            <label for="new-agent-instructions-input" class="sr-only">Enter agent instructions</label>
-            <textarea
-                    id="new-agent-instructions-input"
-                    class="w-full rounded-lg border border-slate-300 bg-slate-200 px-4 py-2 text-sm text-slate-800 shadow-md focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600 dark:border-slate-200/10 dark:bg-[#171E28] dark:text-slate-200 dark:placeholder-slate-400 dark:focus:border-blue-600 sm:text-base"
-                    placeholder="Enter agent instructions"
-                    rows="10"
-                    bind:value={$current_agent_instructions}
-                    required
-            ></textarea>
+            <div>
+                <label for="new-agent-instructions-input" class="block text-sm font-medium">Agent Instructions</label>
+                <textarea
+                        id="new-agent-instructions-input"
+                        class="mt-1 block w-full rounded-md border-gray-300 bg-[#161b22] px-4 py-2 text-slate-200 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                        placeholder="Enter agent instructions"
+                        rows="6"
+                        bind:value={$current_agent_instructions}
+                        required
+                ></textarea>
+            </div>
 
-            <button
-                    type="submit"
-                    class="mt-4 flex items-center justify-center rounded-lg border border-transparent bg-blue-600 px-6 py-2 text-slate-200 hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-300"
-                    on:click={update_agent}
-            >
-                <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        class="h-6 w-6 mr-2"
-                        viewBox="0 0 24 24"
-                        stroke-width="2"
-                        stroke="currentColor"
-                        fill="none"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
+            <div>
+                <button
+                        type="submit"
+                        class="inline-flex items-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                 >
-                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-                    <path d="M10 14l11 -11"></path>
-                    <path d="M21 3l-6.5 18a.55 .55 0 0 1 -1 0l-3.5 -7l-7 -3.5a.55 .55 0 0 1 0 -1l18 -6.5"></path>
-                </svg>
-                <span>Update Agent</span>
-            </button>
+                    <svg class="-ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                        <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+                    </svg>
+                    Update Agent
+                </button>
+            </div>
         </form>
     </div>
 </div>

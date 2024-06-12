@@ -146,6 +146,15 @@ class ChatDatabase:
         messages = session.query(Message).filter(Message.chat_id == chat_id).all()
         return messages
 
+    def delete_chat(self, chat_id):
+        session = self.Session()
+        chat = session.query(Chat).filter(Chat.id == chat_id).first()
+        if chat:
+            session.delete(chat)
+            session.commit()
+        else:
+            print("Chat not found.")
+
     def get_chat_details(self, chat_id):
         session = self.Session()
         chat = session.query(Chat).filter(Chat.id == chat_id).first()

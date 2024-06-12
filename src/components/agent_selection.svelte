@@ -57,6 +57,13 @@
             }
         });
         deletingAgent = false;
+        fetchPanelData()
+            .then(data => {
+                panels = data;
+            })
+            .catch(error => {
+                console.error('Failed to fetch panels:', error);
+            });
     }
 
     async function handleCancelDeleteAgent(): Promise<void> {
@@ -107,36 +114,35 @@
         box-shadow: 0 2px 5px rgb(0, 0, 0); /* Subtle shadow for depth */
     }
 </style>
-<div class="flex h-[97vh] w-full flex-col">
-    <div
-            class="mt-20 ml-20 mr-20 flex-1 overflow-y-auto bg-[#0d1117] text-sm leading-6 text-slate-900 shadow-md dark:bg-[#0d1117] dark:text-slate-300 sm:text-base sm:leading-7"
-    >
-        <div class="grid grid-cols-4 gap-2">
+<div class="flex min-h-screen w-full flex-col bg-[#0d1117] text-slate-300">
+    <div class="mx-auto my-8 w-full max-w-7xl px-4">
+        <h1 class="mb-8 text-3xl font-bold">Agent Selection</h1>
+        <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
             {#each panels as { id, name, description, instructions }}
-                <div class="panel w-72 h-72 bg-slate-800 p-5 items-center overflow-y-auto">
-                    <button class="m-1 hover:text-blue-600 dark:hover:text-blue-600" on:click={() => start_chat(id)}>
-                        <svg class="w-8 h-8" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
-                            <path fill-rule="evenodd" d="M3.559 4.544c.355-.35.834-.544 1.33-.544H19.11c.496 0 .975.194 1.33.544.356.35.559.829.559 1.331v9.25c0 .502-.203.981-.559 1.331-.355.35-.834.544-1.33.544H15.5l-2.7 3.6a1 1 0 0 1-1.6 0L8.5 17H4.889c-.496 0-.975-.194-1.33-.544A1.868 1.868 0 0 1 3 15.125v-9.25c0-.502.203-.981.559-1.331ZM7.556 7.5a1 1 0 1 0 0 2h8a1 1 0 0 0 0-2h-8Zm0 3.5a1 1 0 1 0 0 2H12a1 1 0 1 0 0-2H7.556Z" clip-rule="evenodd"/>
-                        </svg>
-
-                    </button>
-                    <button class="m-1 hover:text-blue-600 dark:hover:text-blue-600" on:click={() => update_agent(id, name, description, instructions)}>
-                        <svg class="w-8 h-8" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
-                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m14.304 4.844 2.852 2.852M7 7H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h11a1 1 0 0 0 1-1v-4.5m2.409-9.91a2.017 2.017 0 0 1 0 2.853l-6.844 6.844L8 14l.713-3.565 6.844-6.844a2.015 2.015 0 0 1 2.852 0Z"/>
-                        </svg>
-
-                    </button>
-                    <button class="m-1 hover:text-blue-600 dark:hover:text-blue-600" on:click={() => delete_agent(id)}>
-                        <svg class="w-8 h-8 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
-                            <path fill-rule="evenodd" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 7h14m-9 3v8m4-8v8M10 3h4a1 1 0 0 1 1 1v3H9V4a1 1 0 0 1 1-1ZM6 7h12v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V7Z"/>
-                        </svg>
-                    </button>
-
-                    <h2 class="font-bold">{name}</h2>
-                    <p>{description}</p>
+                <div class="overflow-hidden rounded-lg bg-[#161b22] shadow-md">
+                    <div class="p-4">
+                        <h2 class="mb-2 text-xl font-bold">{name}</h2>
+                        <p class="mb-4 text-sm text-slate-400">{description}</p>
+                        <div class="flex justify-end space-x-2">
+                            <button class="rounded-md p-2 text-slate-400 transition duration-200 ease-in-out hover:bg-blue-600 hover:text-white focus:outline-none" title="Start Chat" on:click={() => start_chat(id)}>
+                                <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                    <path d="M2 5a2 2 0 012-2h7a2 2 0 012 2v4a2 2 0 01-2 2H9l-3 3v-3H4a2 2 0 01-2-2V5z" />
+                                    <path d="M15 7v2a4 4 0 01-4 4H9.828l-1.766 1.767c.28.149.599.233.938.233h2l3 3v-3h2a2 2 0 002-2V9a2 2 0 00-2-2h-1z" />
+                                </svg>
+                            </button>
+                            <button class="rounded-md p-2 text-slate-400 transition duration-200 ease-in-out hover:bg-blue-600 hover:text-white focus:outline-none" title="Edit Agent" on:click={() => update_agent(id, name, description, instructions)}>
+                                <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                    <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                                </svg>
+                            </button>
+                            <button class="rounded-md p-2 text-slate-400 transition duration-200 ease-in-out hover:bg-red-600 hover:text-white focus:outline-none" title="Delete Agent" on:click={() => delete_agent(id)}>
+                                <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
                 </div>
-
-
             {/each}
             {#if deletingAgent}
                 <DeleteAgent agentId={agentId} on:delete_agent={handleDeleteAgent} on:close={handleCancelDeleteAgent}/>

@@ -24,7 +24,7 @@ from chat_database import ChatDatabase
 provider = LlamaCppServerProvider(server_address="http://127.0.0.1:8080")
 llama_cpp_agent = LlamaCppAgent(provider, debug_output=True,
                                 system_prompt="",
-                                predefined_messages_formatter_type=MessagesFormatterType.MISTRAL, )
+                                predefined_messages_formatter_type=MessagesFormatterType.VICUNA, )
 llm_sampling_settings = provider.get_provider_default_settings()
 db = ChatDatabase()
 
@@ -206,10 +206,18 @@ def update_agent(agent_id: int, agent: AgentUpdate):
     db.update_agent(agent_id, agent.name, agent.description, agent.instructions)
     return {"message": "Agent updated successfully."}
 
+
 @app.delete("/agents/{agent_id}")
 def delete_agent(agent_id: int):
     db.delete_agent(agent_id)
     return {"message": "Agent deleted successfully."}
+
+
+@app.delete("/chats/{chat_id}")
+def delete_chat(chat_id: int):
+    db.delete_chat(chat_id)
+    return {"message": "Chat deleted successfully."}
+
 
 @app.post("/chats/", response_model=ChatResponse)
 def create_chat(chat: ChatCreate):
