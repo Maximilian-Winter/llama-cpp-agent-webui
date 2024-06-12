@@ -206,6 +206,10 @@ def update_agent(agent_id: int, agent: AgentUpdate):
     db.update_agent(agent_id, agent.name, agent.description, agent.instructions)
     return {"message": "Agent updated successfully."}
 
+@app.delete("/agents/{agent_id}")
+def delete_agent(agent_id: int):
+    db.delete_agent(agent_id)
+    return {"message": "Agent deleted successfully."}
 
 @app.post("/chats/", response_model=ChatResponse)
 def create_chat(chat: ChatCreate):

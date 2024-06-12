@@ -10,6 +10,7 @@
         Message,
         text
     } from "../stores/app_store";
+    import DeleteAgent from "./delete_agent.svelte";
     import { createEventDispatcher } from 'svelte';
 
     const dispatch = createEventDispatcher();
@@ -34,6 +35,32 @@
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         return await response.json();
+    }
+
+    let deletingAgent = false;
+    let agentId = -1;
+
+    async function delete_agent(id: number): Promise<void> {
+        agentId = id;
+        deletingAgent = true;
+    }
+
+    interface AgentId
+    {
+        id: number;
+    }
+    async function handleDeleteAgent(e: CustomEvent<AgentId>): Promise<void> {
+        const response = await fetch('http://localhost:8042/agents/' + e.detail.id, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+        deletingAgent = false;
+    }
+
+    async function handleCancelDeleteAgent(): Promise<void> {
+        deletingAgent = false;
     }
     async function start_chat(id: number): Promise<void> {
         const payload = {
@@ -70,6 +97,7 @@
                 console.error('Failed to fetch panels:', error);
             });
     });
+
 </script>
 
 <style>
@@ -98,7 +126,11 @@
                         </svg>
 
                     </button>
-
+                    <button class="m-1 hover:text-blue-600 dark:hover:text-blue-600" on:click={() => delete_agent(id)}>
+                        <svg class="w-8 h-8 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                            <path fill-rule="evenodd" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 7h14m-9 3v8m4-8v8M10 3h4a1 1 0 0 1 1 1v3H9V4a1 1 0 0 1 1-1ZM6 7h12v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V7Z"/>
+                        </svg>
+                    </button>
 
                     <h2 class="font-bold">{name}</h2>
                     <p>{description}</p>
@@ -106,6 +138,9 @@
 
 
             {/each}
+            {#if deletingAgent}
+                <DeleteAgent agentId={agentId} on:delete_agent={handleDeleteAgent} on:close={handleCancelDeleteAgent}/>
+            {/if}
         </div>
     </div>
 </div>
