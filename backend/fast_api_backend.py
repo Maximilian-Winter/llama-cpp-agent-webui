@@ -53,6 +53,11 @@ class MessageCreate(BaseModel):
     content: str
 
 
+class MessageEdit(BaseModel):
+    id: int
+    content: str
+
+
 class AgentResponse(BaseModel):
     id: int
     name: str
@@ -233,7 +238,15 @@ def create_chat(chat: ChatCreate):
 def create_message(message: MessageCreate):
     message_id, timestamp = db.add_message(message.chat_id, message.role, message.content)
     if message_id:
-        return {"id": message_id, "chat_id": message.chat_id, "role": message.role, "content": message.content, "timestamp": timestamp.strftime("%d/%m/%Y %H:%M:%S")}
+        return {"id": message_id, "chat_id": message.chat_id, "role": message.role, "content": message.content,
+                "timestamp": timestamp.strftime("%d/%m/%Y %H:%M:%S")}
+    raise HTTPException(status_code=400, detail="Failed to add message.")
+
+
+@app.put("/messages/")
+def edit_message(message: MessageEdit):
+    if db.edit_message(message.id, message.content):
+        return {"message": "Successfully edited message."}
     raise HTTPException(status_code=400, detail="Failed to add message.")
 
 

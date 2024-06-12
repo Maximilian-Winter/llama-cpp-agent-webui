@@ -13,7 +13,7 @@
         chats
     } from "../stores/app_store.js";
     import { createEventDispatcher } from 'svelte';
-
+    import EditMessage from "./edit_message.svelte";
     const dispatch = createEventDispatcher();
     async function handleKeydown(event: KeyboardEvent): Promise<void> {
         if (event.key === 'Enter' && !event.shiftKey ) {
@@ -154,6 +154,63 @@
 
         });
     }
+
+    let editingMessage = false;
+    let message = -1;
+    let message_content = '';
+    async function edit_message(id: number, content: string): Promise<void> {
+        message = id;
+        message_content = content;
+        editingMessage = true;
+    }
+
+    interface MessageId
+    {
+        id: number;
+        content: string;
+    }
+    async function handleEditMessage(e: CustomEvent<MessageId>): Promise<void> {
+
+        const payload = {
+            id: e.detail.id,
+            content: e.detail.content,
+        };
+        const response = await fetch('http://localhost:8042/messages/', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload),
+        });
+        editingMessage = false;
+        if(response.ok)
+        {
+            let responseMsgs = await fetch('http://localhost:8042/chats/'+ $current_chat.id + '/messages', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            });
+            await responseMsgs.json().then((res) => {
+                current_chat.update(chat => {
+                    chat.messages = res;
+                    return chat;
+                });
+            })
+        }
+    }
+
+    async function handleCancelEditingMessage(): Promise<void> {
+        editingMessage = false;
+    }
+
+    async function copyToClipboard(text: string): Promise<void> {
+        try {
+            await navigator.clipboard.writeText(text);
+        } catch (err) {
+            console.error('Failed to copy text to clipboard:', err);
+        }
+    }
 </script>
 
 <!-- Prompt Messages Container - Modify the height according to your need -->
@@ -174,12 +231,12 @@
                                     <span class="text-xs text-slate-400">{message.timestamp}</span>
                                 </div>
                                 <div class="flex gap-2">
-                                    <button class="text-slate-400 hover:text-blue-500" title="Copy">
+                                    <button class="text-slate-400 hover:text-blue-500" title="Copy" on:click={() => copyToClipboard(message.content)}>
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
                                         </svg>
                                     </button>
-                                    <button class="text-slate-400 hover:text-blue-500" title="Edit">
+                                    <button class="text-slate-400 hover:text-blue-500" title="Edit" on:click={() => edit_message(message.id, message.content)}>
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                                         </svg>
@@ -201,12 +258,12 @@
                                     <span class="text-xs text-slate-400">{message.timestamp}</span>
                                 </div>
                                 <div class="flex gap-2">
-                                    <button class="text-slate-400 hover:text-blue-500" title="Copy">
+                                    <button class="text-slate-400 hover:text-blue-500" title="Copy" on:click={() => copyToClipboard(message.content)}>
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
                                         </svg>
                                     </button>
-                                    <button class="text-slate-400 hover:text-blue-500" title="Edit">
+                                    <button class="text-slate-400 hover:text-blue-500" title="Edit" on:click={() => edit_message(message.id, message.content)}>
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                                         </svg>
@@ -220,6 +277,9 @@
             {/each}
         {/if}
     </div>
+    {#if editingMessage}
+        <EditMessage id={message} message={message_content} on:save={handleEditMessage} on:cancel={handleCancelEditingMessage}/>
+    {/if}
     <form class="flex items-center gap-4 border-t border-slate-700 bg-[#0d1117] p-4">
         <button class="text-slate-400 hover:text-blue-500" type="button" title="Add">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">

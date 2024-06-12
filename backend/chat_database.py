@@ -110,6 +110,17 @@ class ChatDatabase:
             print("Chat not found.")
             return None
 
+    def edit_message(self, message_id, content):
+        session = self.Session()
+        msg = session.query(Message).filter(Message.id == message_id).first()
+        if msg:
+            msg.content = content
+            session.commit()
+            return True
+        else:
+            print("Chat not found.")
+            return None
+
     def set_chat_title(self, chat_id, title):
         session = self.Session()
         chat = session.query(Chat).filter(Chat.id == chat_id).first()
