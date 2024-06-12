@@ -18,11 +18,13 @@ export class Message {
      * @param {number} id
      * @param {string} role
      * @param {string} content
+     * @param {string} timestamp
      */
-    constructor(id, role, content) {
+    constructor(id, role, content, timestamp) {
         this.id = id;
         this.role = role;
         this.content = content;
+        this.timestamp = timestamp;
     }
 }
 export class Chat {

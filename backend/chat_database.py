@@ -105,7 +105,7 @@ class ChatDatabase:
             new_message = Message(role=role, timestamp=datetime.datetime.now(), content=content, chat_id=chat_id)
             session.add(new_message)
             session.commit()
-            return new_message.id
+            return new_message.id, new_message.timestamp
         else:
             print("Chat not found.")
             return None
@@ -173,6 +173,7 @@ class ChatDatabase:
                     "id": message.id,
                     "role": message.role,
                     "content": message.content,
+                    "timestamp": message.timestamp.strftime("%m/%d/%Y, %H:%M:%S"),
                     "chat_id": chat_id
                 } for message in chat.messages
             ]

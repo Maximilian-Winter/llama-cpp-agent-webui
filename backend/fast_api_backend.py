@@ -65,6 +65,7 @@ class MessageResponse(BaseModel):
     role: str
     content: str
     chat_id: int
+    timestamp: str
 
 
 class ChatResponse(BaseModel):
@@ -79,6 +80,7 @@ class Message(BaseModel):
     id: int
     role: str
     content: str
+    timestamp: str
 
 
 class Settings(BaseModel):
@@ -152,7 +154,7 @@ async def complete_llama(request: Request, generationRequest: GenerationRequest)
 
     for message in generationRequest.messages:
         if message.id == -1:
-            message_id = db.add_message(chat_id, message.role, message.content)
+            message_id, _ = db.add_message(chat_id, message.role, message.content)
         else:
             message_id = message.id
         llama_cpp_agent.chat_history.add_message({"role": Roles(message.role), "content": message.content})
@@ -229,9 +231,9 @@ def create_chat(chat: ChatCreate):
 
 @app.post("/messages/", response_model=MessageResponse)
 def create_message(message: MessageCreate):
-    message_id = db.add_message(message.chat_id, message.role, message.content)
+    message_id, timestamp = db.add_message(message.chat_id, message.role, message.content)
     if message_id:
-        return {"id": message_id, "chat_id": message.chat_id, "role": message.role, "content": message.content}
+        return {"id": message_id, "chat_id": message.chat_id, "role": message.role, "content": message.content, "timestamp": timestamp.strftime("%d/%m/%Y %H:%M:%S")}
     raise HTTPException(status_code=400, detail="Failed to add message.")
 
 
@@ -278,6 +280,7 @@ def get_all_chats():
             "id": message.id,
             "role": message.role,
             "content": message.content,
+            "timestamp": message.timestamp.strftime("%m/%d/%Y, %H:%M:%S"),
             "chat_id": chat.id
         } for message in chat.messages]
     } for chat in chats]
@@ -299,6 +302,7 @@ def search_chats(title: str):
             "id": message.id,
             "role": message.role,
             "content": message.content,
+            "timestamp": message.timestamp.strftime("%m/%d/%Y, %H:%M:%S"),
             "chat_id": chat.id
         } for message in chat.messages]
     } for chat in chats]
@@ -312,6 +316,7 @@ def get_chat_messages(chat_id: int):
         "id": message.id,
         "role": message.role,
         "content": message.content,
+        "timestamp": message.timestamp.strftime("%m/%d/%Y, %H:%M:%S"),
         "chat_id": chat_id
     } for message in messages]
 

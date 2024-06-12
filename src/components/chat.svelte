@@ -28,7 +28,7 @@
             return
         }
         current_chat.update(chat => {
-            const newMessage = new Message(-1, "user", $text);
+            const newMessage = new Message(-1, "user", $text, "Today");
             chat.messages.push(newMessage);
             return chat;
         });
@@ -58,7 +58,7 @@
         });
 
         current_chat.update(chat => {
-            const newMessage = new Message(-1, "assistant", "");
+            const newMessage = new Message(-1, "assistant", "", "Today");
             chat.messages.push(newMessage);
             return chat;
         });
@@ -117,6 +117,20 @@
                 await response.json().then((res) => {
                     current_chat.update(chat => {
                         chat.messages[message_id].id = res.id;
+                        chat.messages[message_id].timestamp = res.timestamp;
+                        return chat;
+                    });
+                })
+
+                let responseMsgs = await fetch('http://localhost:8042/chats/'+ $current_chat.id + '/messages', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+                await responseMsgs.json().then((res) => {
+                    current_chat.update(chat => {
+                        chat.messages = res;
                         return chat;
                     });
                 })
@@ -157,7 +171,7 @@
                             <div class="flex justify-between">
                                 <div class="flex items-center gap-2">
                                     <span class="font-bold text-slate-200">User</span>
-                                    <span class="text-xs text-slate-400">{new Date().toLocaleString()}</span>
+                                    <span class="text-xs text-slate-400">{message.timestamp}</span>
                                 </div>
                                 <div class="flex gap-2">
                                     <button class="text-slate-400 hover:text-blue-500" title="Copy">
@@ -184,7 +198,7 @@
                             <div class="flex justify-between">
                                 <div class="flex items-center gap-2">
                                     <span class="font-bold text-slate-200">AI</span>
-                                    <span class="text-xs text-slate-400">{new Date().toLocaleString()}</span>
+                                    <span class="text-xs text-slate-400">{message.timestamp}</span>
                                 </div>
                                 <div class="flex gap-2">
                                     <button class="text-slate-400 hover:text-blue-500" title="Copy">
@@ -212,7 +226,7 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
             </svg>
         </button>
-        <textarea id="chat-input" rows="3" class="prompt-input w-full h-fit flex-grow resize-none rounded-md border border-slate-700 bg-[#1c2128] p-2 text-base text-slate-200 placeholder-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500" placeholder="Enter your prompt" bind:value={$text} on:keydown={handleKeydown}></textarea>
+        <textarea id="chat-input" rows="3" class="prompt-input w-full flex-grow resize-none rounded-md border border-slate-700 bg-[#1c2128] p-2 text-base text-slate-200 placeholder-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500" placeholder="Enter your prompt" bind:value={$text} on:keydown={handleKeydown}></textarea>
         <button class="text-slate-400 hover:text-blue-500" on:click={send_message} title="Send">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7" />
