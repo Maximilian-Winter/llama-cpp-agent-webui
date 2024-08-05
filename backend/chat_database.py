@@ -76,6 +76,17 @@ class ChatDatabase:
         else:
             print("Agent not found.")
 
+    def delete_message(self, message_id):
+        session = self.Session()
+        message = session.query(Message).filter(Message.id == message_id).first()
+        if message:
+            session.delete(message)
+            session.commit()
+            return True
+        else:
+            print("Message not found.")
+            return False
+
     def search_agents_by_name(self, name):
         session = self.Session()
         agents = session.query(Agent).filter(Agent.name.contains(name)).all()

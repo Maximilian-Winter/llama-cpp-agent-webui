@@ -226,6 +226,12 @@ def delete_chat(chat_id: int):
     return {"message": "Chat deleted successfully."}
 
 
+@app.delete("/messages/{message_id}")
+def delete_message(message_id: int):
+    if db.delete_message(message_id):
+        return {"message": "Message deleted successfully."}
+    raise HTTPException(status_code=404, detail="Message not found.")
+
 @app.post("/chats/", response_model=ChatResponse)
 def create_chat(chat: ChatCreate):
     chat_id = db.add_chat_with_agent_id(chat.title, chat.agent_id)

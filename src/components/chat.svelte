@@ -1,20 +1,23 @@
 <script lang="ts">
     import {
+        chats,
         current_chat,
         max_tokens,
         Message,
-        Chat,
-        min_p, rep_pen, rep_pen_range,
+        min_p,
+        rep_pen,
+        rep_pen_range,
         temperature,
-        text, tfsz,
+        text,
+        tfsz,
         top_k,
         top_p,
-        typ_p,
-        chats
-    } from "../stores/app_store.js";
+        typ_p
+    } from '../stores/app_store.js';
     import { createEventDispatcher } from 'svelte';
-    import EditMessage from "./edit_message.svelte";
-    import CodeBlock from "./code_block.svelte";
+    import EditMessage from './edit_message.svelte';
+    import CodeBlock from './code_block.svelte';
+
     const dispatch = createEventDispatcher();
     async function handleKeydown(event: KeyboardEvent): Promise<void> {
         if (event.key === 'Enter' && !event.shiftKey ) {
@@ -33,7 +36,12 @@
             chat.messages.push(newMessage);
             return chat;
         });
-        console.log($max_tokens, $temperature, $top_p, $top_k, $min_p, $typ_p, $tfsz, $rep_pen, $rep_pen_range)
+
+        await getResponse();
+
+    }
+
+    async function getResponse(): Promise<void> {
         const payload = {
             chat_id: $current_chat.id,
             agent_id: $current_chat.agent.id,
@@ -50,7 +58,7 @@
                 "rep_pen_range": $rep_pen_range,
             }
         };
-        console.log(payload)
+
         const response = await fetch('http://localhost:8042/llama/complete', {
             method: 'POST',
             headers: {
@@ -76,9 +84,7 @@
         } else {
             console.error('Failed to start session');
         }
-
     }
-
     function subscribeToUpdates(message_id: number, chat_id: number, message_ids: [number]) {
         current_chat.update(chat => {
             if (chat_id === -1) {
@@ -217,6 +223,45 @@
             console.error('Failed to copy text to clipboard:', err);
         }
     }
+
+
+    async function deleteMessage(messageId: number) {
+        console.log('Attempting to delete message:', messageId);
+        const response = await fetch(`http://localhost:8042/messages/${messageId}`, {
+            method: 'DELETE',
+        });
+
+        if (response.ok) {
+            console.log('Message deleted successfully');
+            const response = await fetch('http://localhost:8042/chats/' + $current_chat.id, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            });
+            let chat = await response.json();
+            current_chat.update(chatz => {
+                chatz.messages = chat.messages
+                return chatz;
+            });
+
+        } else {
+            console.error('Failed to delete message');
+        }
+    }
+
+    function isLastMessage(index: number) {
+        return index === $current_chat.messages.length - 1;
+    }
+
+    async function regenerateMessage(messageId: number): Promise<void> {
+        await deleteMessage(messageId)
+        await getResponse();
+    }
+
+    async function resendUserMessage(): Promise<void> {
+        await getResponse();
+    }
 </script>
 
 <!-- Prompt Messages Container - Modify the height according to your need -->
@@ -225,7 +270,8 @@
         <div class="sticky top-0 z-10 w-full border-b border-slate-700 bg-[#161b22] p-4 text-lg font-bold text-slate-200">
             <h2>{$current_chat.agent.name}</h2>
         </div>
-        {#if $current_chat}
+        {#key $current_chat}
+            {#if $current_chat}
             {#each $current_chat.messages as message, index}
                 {#if message.role === "user"}
                     <div class="flex gap-4 px-4 py-6 sm:px-6">
@@ -247,6 +293,18 @@
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                                         </svg>
                                     </button>
+                                    {#if isLastMessage(index)}
+                                        <button class="text-slate-400 hover:text-green-500" title="Resend" on:click={() => resendUserMessage()}>
+                                            <svg class="w-6 h-6" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 9H8a5 5 0 0 0 0 10h9m4-10-4-4m4 4-4 4"/>
+                                            </svg>
+                                        </button>
+                                        <button class="text-slate-400 hover:text-red-500" title="Delete" on:click={() => deleteMessage(message.id)}>
+                                            <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                                <path fill-rule="evenodd" d="M8.75 1A2.75 2.75 0 006 3.75v.443c-.795.077-1.584.176-2.365.298a.75.75 0 10.23 1.482l.149-.022.841 10.518A2.75 2.75 0 007.596 19h4.807a2.75 2.75 0 002.742-2.53l.841-10.52.149.023a.75.75 0 00.23-1.482A41.03 41.03 0 0014 4.193V3.75A2.75 2.75 0 0011.25 1h-2.5zM10 4c.84 0 1.673.025 2.5.075V3.75c0-.69-.56-1.25-1.25-1.25h-2.5c-.69 0-1.25.56-1.25 1.25v.325C8.327 4.025 9.16 4 10 4zM8.58 7.72a.75.75 0 00-1.5.06l.3 7.5a.75.75 0 101.5-.06l-.3-7.5zm4.34.06a.75.75 0 10-1.5-.06l-.3 7.5a.75.75 0 101.5.06l.3-7.5z" clip-rule="evenodd" />
+                                            </svg>
+                                        </button>
+                                    {/if}
                                 </div>
                             </div>
                             <div class="message text-slate-200">{message.content.trim()}</div>
@@ -260,7 +318,7 @@
                         <div class="flex w-full flex-col gap-2">
                             <div class="flex justify-between">
                                 <div class="flex items-center gap-2">
-                                    <span class="font-bold text-slate-200">AI</span>
+                                    <span class="font-bold text-slate-200">{$current_chat.agent.name}</span>
                                     <span class="text-xs text-slate-400">{message.timestamp}</span>
                                 </div>
                                 <div class="flex gap-2">
@@ -274,6 +332,18 @@
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                                         </svg>
                                     </button>
+                                    {#if isLastMessage(index)}
+                                        <button class="text-slate-400 hover:text-green-500" title="Regenerate" on:click={() => regenerateMessage(message.id)}>
+                                            <svg class="w-6 h-6" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.651 7.65a7.131 7.131 0 0 0-12.68 3.15M18.001 4v4h-4m-7.652 8.35a7.13 7.13 0 0 0 12.68-3.15M6 20v-4h4"/>
+                                            </svg>
+                                        </button>
+                                        <button class="text-slate-400 hover:text-red-500" title="Delete" on:click={() => deleteMessage(message.id)}>
+                                            <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                                <path fill-rule="evenodd" d="M8.75 1A2.75 2.75 0 006 3.75v.443c-.795.077-1.584.176-2.365.298a.75.75 0 10.23 1.482l.149-.022.841 10.518A2.75 2.75 0 007.596 19h4.807a2.75 2.75 0 002.742-2.53l.841-10.52.149.023a.75.75 0 00.23-1.482A41.03 41.03 0 0014 4.193V3.75A2.75 2.75 0 0011.25 1h-2.5zM10 4c.84 0 1.673.025 2.5.075V3.75c0-.69-.56-1.25-1.25-1.25h-2.5c-.69 0-1.25.56-1.25 1.25v.325C8.327 4.025 9.16 4 10 4zM8.58 7.72a.75.75 0 00-1.5.06l.3 7.5a.75.75 0 101.5-.06l-.3-7.5zm4.34.06a.75.75 0 10-1.5-.06l-.3 7.5a.75.75 0 101.5.06l.3-7.5z" clip-rule="evenodd" />
+                                            </svg>
+                                        </button>
+                                    {/if}
                                 </div>
                             </div>
                             <div class="message text-slate-200">
@@ -284,6 +354,7 @@
                 {/if}
             {/each}
         {/if}
+        {/key}
     </div>
     {#if editingMessage}
         <EditMessage id={message} message={message_content} on:save={handleEditMessage} on:cancel={handleCancelEditingMessage}/>
