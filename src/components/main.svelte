@@ -6,7 +6,7 @@
     import AgentCreation from './agent_creation.svelte';
     import AgentSelection from "./agent_selection.svelte"
     import AgentUpdate from "./agent_update.svelte";
-
+    import 'highlight.js/styles/github-dark.css';
     function newChat() {
 
         sidebar.handleNewChat();

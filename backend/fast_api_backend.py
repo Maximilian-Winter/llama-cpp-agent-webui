@@ -24,7 +24,7 @@ from chat_database import ChatDatabase
 provider = LlamaCppServerProvider(server_address="http://127.0.0.1:8080")
 llama_cpp_agent = LlamaCppAgent(provider, debug_output=True,
                                 system_prompt="",
-                                predefined_messages_formatter_type=MessagesFormatterType.VICUNA, )
+                                predefined_messages_formatter_type=MessagesFormatterType.MISTRAL, )
 llm_sampling_settings = provider.get_provider_default_settings()
 db = ChatDatabase()
 

@@ -86,7 +86,7 @@
             let new_chat = await response.json()
             current_chat.set(new Chat(new_chat.id, new_chat.title, new_chat.agent, new_chat.instructions));
             current_chat.update(chat => {
-                const newMessage = new Message(-1, "system", new_chat.agent.instructions);
+                const newMessage = new Message(-1, "system", new_chat.agent.instructions, "Today");
                 chat.messages.push(newMessage);
                 return chat;
             });

@@ -14,6 +14,7 @@
     } from "../stores/app_store.js";
     import { createEventDispatcher } from 'svelte';
     import EditMessage from "./edit_message.svelte";
+    import CodeBlock from "./code_block.svelte";
     const dispatch = createEventDispatcher();
     async function handleKeydown(event: KeyboardEvent): Promise<void> {
         if (event.key === 'Enter' && !event.shiftKey ) {
@@ -49,6 +50,7 @@
                 "rep_pen_range": $rep_pen_range,
             }
         };
+        console.log(payload)
         const response = await fetch('http://localhost:8042/llama/complete', {
             method: 'POST',
             headers: {
@@ -135,11 +137,15 @@
                     });
                 })
                 return
+            }else {
+                current_chat.update(chat => {
+                    chat.messages[message_id].content += event.data;
+                    return chat;
+                });
+
+                // Force a re-render of the CodeBlock component
+                current_chat.update(chat => chat);
             }
-            current_chat.update(chat => {
-                chat.messages[message_id].content += event.data;
-                return chat;
-            });
         };
 
         source.onerror = function () {
@@ -270,7 +276,9 @@
                                     </button>
                                 </div>
                             </div>
-                            <div class="message text-slate-200">{message.content.trim()}</div>
+                            <div class="message text-slate-200">
+                                <CodeBlock content={message.content.trim()} />
+                            </div>
                         </div>
                     </div>
                 {/if}
