@@ -73,14 +73,6 @@ class MessageResponse(BaseModel):
     timestamp: str
 
 
-class ChatResponse(BaseModel):
-    id: int
-    title: str
-    timestamp: str
-    agent: AgentResponse
-    messages: List[MessageResponse]
-
-
 class Message(BaseModel):
     id: int
     role: str
@@ -98,6 +90,15 @@ class Settings(BaseModel):
     tfsz: float
     rep_pen: float
     rep_pen_range: int
+
+
+class ChatResponse(BaseModel):
+    id: int
+    title: str
+    timestamp: str
+    agent: AgentResponse
+    messages: List[MessageResponse]
+    settings: Settings
 
 
 class GenerationRequest(BaseModel):
@@ -147,6 +148,9 @@ async def complete_llama(request: Request, generationRequest: GenerationRequest)
     chat_id = generationRequest.chat_id
     if chat_id == -1:
         chat_id = db.add_chat_with_agent_id("New Chat", agent_id=generationRequest.agent_id)
+        db.add_or_update_chat_settings(chat_id, generationRequest.settings.model_dump())
+    else:
+        db.add_or_update_chat_settings(chat_id, generationRequest.settings.model_dump())
     messages_ids = []
     converted_messages = []
     global llm_sampling_settings, llama_cpp_agent
@@ -166,7 +170,10 @@ async def complete_llama(request: Request, generationRequest: GenerationRequest)
         messages_ids.append(message_id)
 
     settings_dict = generationRequest.settings.model_dump()
-
+    llm_sampling_settings.temperature = settings_dict["temperature"]
+    llm_sampling_settings.min_p = settings_dict["min_p"]
+    llm_sampling_settings.top_k = settings_dict["top_k"]
+    llm_sampling_settings.top_p = settings_dict["top_p"]
     llm_sampling_settings.n_predict = settings_dict.pop("max_tokens")
     llm_sampling_settings.tfs_z = settings_dict.pop("tfsz")
     llm_sampling_settings.repeat_last_n = settings_dict.pop("rep_pen_range")
@@ -232,6 +239,7 @@ def delete_message(message_id: int):
         return {"message": "Message deleted successfully."}
     raise HTTPException(status_code=404, detail="Message not found.")
 
+
 @app.post("/chats/", response_model=ChatResponse)
 def create_chat(chat: ChatCreate):
     chat_id = db.add_chat_with_agent_id(chat.title, chat.agent_id)
@@ -258,10 +266,16 @@ def edit_message(message: MessageEdit):
 
 @app.get("/chats/{chat_id}", response_model=ChatResponse)
 def get_chat(chat_id: int):
-    chat = db.get_chat_details(chat_id)  # You need to implement this method in ChatDatabase
+    chat = db.get_chat_details(chat_id)
     if chat:
         return chat
     raise HTTPException(status_code=404, detail="Chat not found.")
+
+
+@app.put("/chats/{chat_id}/settings")
+def update_chat_settings(chat_id: int, settings: Settings):
+    db.add_or_update_chat_settings(chat_id, settings.dict())
+    return {"message": "Chat settings updated successfully."}
 
 
 @app.put("/chats/{chat_id}/{title}")
@@ -285,24 +299,7 @@ def get_all_agents():
 def get_all_chats():
     chats = db.get_all_chats()
     # Assuming you extend get_all_chats to include agent and messages or adjust here accordingly
-    return [{
-        "id": chat.id,
-        "title": chat.title,
-        "timestamp": chat.timestamp.strftime("%m/%d/%Y, %H:%M:%S"),
-        "agent": {
-            "id": chat.agent.id,
-            "name": chat.agent.name,
-            "description": chat.agent.description,
-            "instructions": chat.agent.instructions
-        } if chat.agent else None,
-        "messages": [{
-            "id": message.id,
-            "role": message.role,
-            "content": message.content,
-            "timestamp": message.timestamp.strftime("%m/%d/%Y, %H:%M:%S"),
-            "chat_id": chat.id
-        } for message in chat.messages]
-    } for chat in chats]
+    return [db.get_chat_details(chat.id) for chat in chats]
 
 
 # Search chats by title
