@@ -37,8 +37,10 @@
 	},
 	"type": "module",
 	"dependencies": {
+		"@types/prismjs": "^1.26.4",
 		"dompurify": "^3.1.6",
 		"highlight.js": "^11.10.0",
-		"marked": "^13.0.3"
+		"marked": "^13.0.3",
+		"prismjs": "^1.29.0"
 	}
 }

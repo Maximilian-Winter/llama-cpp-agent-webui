@@ -1,7 +1,9 @@
 <script lang="ts">
-    import { onMount, afterUpdate } from 'svelte';
+    import { onMount, afterUpdate, tick } from 'svelte';
     import DOMPurify from 'dompurify';
     import { marked } from 'marked';
+    import hljs from 'highlight.js';
+
 
     export let content: string;
 
@@ -18,30 +20,26 @@
         const markedContent = await marked(content);
         processedContent = DOMPurify.sanitize(markedContent);
         console.log("Processed content length:", processedContent.length);
+
+        // We need to wait for the next tick to ensure the DOM is updated
+        await tick();
+        hljs.highlightAll();
     }
+
 
     function wrapCodeBlocks() {
         console.log("Wrapping code blocks");
-
-        // Remove all existing code-block-header elements
-        const existingHeaders = markdownContainer.querySelectorAll('.code-block-header');
-        existingHeaders.forEach(header => header.remove());
-        console.log(`Removed ${existingHeaders.length} existing headers`);
 
         const codeBlocks = markdownContainer.querySelectorAll('pre > code');
         console.log("Found code blocks:", codeBlocks.length);
 
         codeBlocks.forEach((block, index) => {
             const pre = block.parentElement;
-            console.log(`Code block ${index}:`, pre?.outerHTML);
-            console.log(`Parent of pre:`, pre?.parentNode?.nodeName);
-
             if (pre) {
                 // If the pre is already wrapped, unwrap it
                 if (pre.parentElement?.classList.contains('code-block-wrapper')) {
                     const wrapper = pre.parentElement;
                     wrapper.remove();
-                    console.log(`Unwrapped existing wrapper for code block ${index}`);
                 }
 
                 // Always wrap the code block
@@ -51,11 +49,15 @@
                 console.log(`Code block ${index} is invalid (no pre parent)`);
             }
         });
+
+        hljs.highlightAll();
     }
 
     function wrapCodeBlock(block: HTMLElement, pre: HTMLElement, index: number) {
-        const language = block.className.split('-')[1] || 'plaintext';
-        console.log(`Wrapping code block ${index}, language: ${language}`);
+        let language = block.className.split('-')[1].replace("hljs", "") || 'plaintext';
+        if (language === '') {
+            language = 'plaintext';
+        }
         const wrapper = document.createElement('div');
         wrapper.className = 'code-block-wrapper';
 
@@ -74,7 +76,6 @@
         wrapper.appendChild(header);
         pre.parentNode?.insertBefore(wrapper, pre);
         wrapper.appendChild(pre);
-        console.log(`Wrapped code block ${index}`);
 
         const copyButton = header.querySelector('.copy-button');
         if (copyButton) {
@@ -94,12 +95,10 @@
     }
 
     onMount(() => {
-        console.log("Component mounted");
         wrapCodeBlocks();
     });
 
     afterUpdate(() => {
-        console.log("Component updated");
         wrapCodeBlocks();
     });
 </script>
@@ -108,14 +107,13 @@
     {@html processedContent}
 </div>
 
-
-
 <style>
+
     .markdown-content :global(.code-block-wrapper) {
         margin: 1rem 0;
         border-radius: 0.375rem;
         overflow: hidden;
-        background-color: #1f2937;
+        background-color: #0d1117;
     }
 
     .markdown-content :global(.code-block-header) {
