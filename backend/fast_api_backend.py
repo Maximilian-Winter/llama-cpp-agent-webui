@@ -1,7 +1,9 @@
 import asyncio
 import json
+import os
 from typing import List, Optional
 
+from dotenv import load_dotenv
 from sse_starlette import EventSourceResponse
 from fastapi import FastAPI, Request, File, Form, UploadFile, HTTPException
 from fastapi.responses import HTMLResponse
@@ -13,19 +15,23 @@ from starlette.responses import FileResponse, JSONResponse
 
 from pydantic import BaseModel
 
-from llama_cpp_agent.chat_history import BasicChatHistory
-from llama_cpp_agent.chat_history.messages import Roles
-from llama_cpp_agent.llm_agent import LlamaCppAgent
-from llama_cpp_agent.providers import LlamaCppServerProvider
-from llama_cpp_agent.messages_formatter import MessagesFormatterType
+from ToolAgents.agents import MistralAgent, ChatAPIAgent
+from ToolAgents.provider import LlamaCppSamplingSettings, LlamaCppServerProvider, OpenAIChatAPI, OpenAISettings
+from ToolAgents.utilities import ChatHistory
 
 from chat_database import ChatDatabase
 
-provider = LlamaCppServerProvider(server_address="http://127.0.0.1:8080")
-llama_cpp_agent = LlamaCppAgent(provider, debug_output=True,
-                                system_prompt="",
-                                predefined_messages_formatter_type=MessagesFormatterType.MISTRAL, )
-llm_sampling_settings = provider.get_provider_default_settings()
+load_dotenv()
+
+# provider = LlamaCppServerProvider(server_address="http://127.0.0.1:8080")
+# mistral_agent = MistralAgent(llm_provider=provider, debug_output=True)
+# llm_sampling_settings = LlamaCppSamplingSettings()
+
+provider = OpenAIChatAPI(api_key=os.getenv("API_KEY"), base_url="https://openrouter.ai/api/v1", model="meta-llama/llama-3.1-405b-instruct")
+mistral_agent = ChatAPIAgent(chat_api=provider, debug_output=True)
+llm_sampling_settings = OpenAISettings()
+
+chat_history = ChatHistory()
 db = ChatDatabase()
 
 
@@ -152,43 +158,44 @@ async def complete_llama(request: Request, generationRequest: GenerationRequest)
     else:
         db.add_or_update_chat_settings(chat_id, generationRequest.settings.model_dump())
     messages_ids = []
-    converted_messages = []
-    global llm_sampling_settings, llama_cpp_agent
-    llama_cpp_agent.chat_history = BasicChatHistory()
+    global llm_sampling_settings, mistral_agent, chat_history
+    chat_history = ChatHistory()
     agent = db.get_agent_by_id(generationRequest.agent_id)
     system_message = agent.instructions
-    llama_cpp_agent.system_prompt = system_message
 
-    llama_cpp_agent.chat_history.add_message({"role": Roles.system, "content": system_message})
+    chat_history.add_system_message(system_message)
 
     for message in generationRequest.messages:
         if message.id == -1:
             message_id, _ = db.add_message(chat_id, message.role, message.content)
         else:
             message_id = message.id
-        llama_cpp_agent.chat_history.add_message({"role": Roles(message.role), "content": message.content})
+        if message.role != "system":
+            chat_history.add_message(message.role, message.content)
         messages_ids.append(message_id)
 
     settings_dict = generationRequest.settings.model_dump()
+    llm_sampling_settings.max_tokens = settings_dict["max_tokens"]
     llm_sampling_settings.temperature = settings_dict["temperature"]
-    llm_sampling_settings.min_p = settings_dict["min_p"]
-    llm_sampling_settings.top_k = settings_dict["top_k"]
     llm_sampling_settings.top_p = settings_dict["top_p"]
-    llm_sampling_settings.n_predict = settings_dict.pop("max_tokens")
-    llm_sampling_settings.tfs_z = settings_dict.pop("tfsz")
-    llm_sampling_settings.repeat_last_n = settings_dict.pop("rep_pen_range")
-    llm_sampling_settings.repeat_penalty = settings_dict.pop("rep_pen")
-    llm_sampling_settings.typical_p = settings_dict.pop("typ_p")
+    # llm_sampling_settings.typical_p = settings_dict["typ_p"]
+    # llm_sampling_settings.min_p = settings_dict["min_p"]
+    # llm_sampling_settings.top_k = settings_dict["top_k"]
+    # llm_sampling_settings.repeat_penalty = settings_dict["rep_pen"]
+    # llm_sampling_settings.repeat_penalty_range = settings_dict["rep_pen_range"]
+    # llm_sampling_settings.tfs_z = settings_dict["tfsz"]
+
     return {"chat_id": chat_id, "messages": messages_ids}
 
 
 @app.get("/llama/stream")
 async def stream_llama(request: Request):
-    global llm_sampling_settings, llama_cpp_agent
+    global llm_sampling_settings, mistral_agent, chat_history
 
     async def async_generator():
-        for item in llama_cpp_agent.get_chat_response(returns_streaming_generator=True,
-                                                      llm_sampling_settings=llm_sampling_settings):
+        for item in mistral_agent.get_streaming_response(
+                messages=chat_history.to_list(),
+                settings=llm_sampling_settings):
             yield item
 
     async def server_sent_events():
@@ -274,7 +281,7 @@ def get_chat(chat_id: int):
 
 @app.put("/chats/{chat_id}/settings")
 def update_chat_settings(chat_id: int, settings: Settings):
-    db.add_or_update_chat_settings(chat_id, settings.dict())
+    db.add_or_update_chat_settings(chat_id, settings.model_dump())
     return {"message": "Chat settings updated successfully."}
 
 
