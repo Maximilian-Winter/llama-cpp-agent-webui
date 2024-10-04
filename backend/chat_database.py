@@ -1,6 +1,7 @@
 import datetime
+from contextlib import contextmanager
 
-from sqlalchemy import create_engine, Column, Integer, String, ForeignKey, DateTime, Float
+from sqlalchemy import create_engine, Column, Integer, String, ForeignKey, DateTime, Float, Text
 from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.orm import relationship, scoped_session, sessionmaker
 
@@ -53,6 +54,9 @@ class ChatSettings(Base):
     rep_pen = Column(Float, default=1.2)
     rep_pen_range = Column(Integer, default=512)
     chat = relationship("Chat", back_populates="settings")
+
+
+
 
 
 class ChatDatabase:

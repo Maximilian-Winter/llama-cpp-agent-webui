@@ -2,6 +2,7 @@
     import App_sidebar from "./app_sidebar.svelte"
     import Generation_sidebar from './generation_sidebar.svelte';
     import { app_mode, current_chat, sidebarVisible } from '../stores/app_store.js';
+    import FileManager from "./FileManager.svelte";
     import Chat from './chat.svelte';
     import AgentCreation from './agent_creation.svelte';
     import AgentSelection from "./agent_selection.svelte"
@@ -43,7 +44,9 @@
     {:else if $app_mode === 'agent_selection'}
         <AgentSelection on:newChat={newChat}/>
     {/if}
-
+    {#if $app_mode === 'file_management'}
+        <FileManager/>
+    {/if}
     {#if $sidebarVisible}
         <Generation_sidebar on:updateSettings={handleUpdateSettings} />
     {:else}

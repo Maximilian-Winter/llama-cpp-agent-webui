@@ -88,10 +88,3 @@
         </form>
     </div>
 </div>
-
-
-<style>
-    .agent-instructions {
-        resize: none;
-    }
-</style>

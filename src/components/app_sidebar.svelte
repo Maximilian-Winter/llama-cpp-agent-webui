@@ -18,6 +18,10 @@
     function enableAgentSelectionMode() {
         app_mode.set("agent_selection");
     }
+
+    function enableFileManageMode() {
+        app_mode.set("file_management");
+    }
     async function start_chat(): Promise<void> {
 
         const payload = {
@@ -134,7 +138,7 @@
         id: number;
     }
     async function handleDeleteChat(e: CustomEvent<ChatId>): Promise<void> {
-        const response = await fetch('http://localhost:8042/chats/' + e.detail.id, {
+        await fetch('http://localhost:8042/chats/' + e.detail.id, {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',
@@ -238,7 +242,12 @@
                 </svg>
                 <span>Agent Creation</span>
             </button>
-
+            <button class="flex w-full items-center space-x-2 rounded-lg px-3 py-2 text-sm font-medium text-slate-200 transition-colors duration-200 hover:bg-slate-800 focus:outline-none" on:click={enableFileManageMode}>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+                </svg>
+                <span>File Management</span>
+            </button>
         </div>
     </div>
 </aside>

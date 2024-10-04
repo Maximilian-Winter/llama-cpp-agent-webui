@@ -50,7 +50,7 @@
         id: number;
     }
     async function handleDeleteAgent(e: CustomEvent<AgentId>): Promise<void> {
-        const response = await fetch('http://localhost:8042/agents/' + e.detail.id, {
+        await fetch('http://localhost:8042/agents/' + e.detail.id, {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',
@@ -107,13 +107,6 @@
 
 </script>
 
-<style>
-    .panel {
-        border: 1px solid #c2c2c2;
-        padding: 15px;
-        box-shadow: 0 2px 5px rgb(0, 0, 0); /* Subtle shadow for depth */
-    }
-</style>
 <div class="flex min-h-screen w-full flex-col bg-[#0d1117] text-slate-300">
     <div class="mx-auto my-8 w-full max-w-7xl px-4">
         <h1 class="mb-8 text-3xl font-bold">Agent Selection</h1>

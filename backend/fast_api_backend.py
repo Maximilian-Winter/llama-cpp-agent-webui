@@ -20,6 +20,7 @@ from ToolAgents.provider import LlamaCppSamplingSettings, LlamaCppServerProvider
 from ToolAgents.utilities import ChatHistory
 
 from chat_database import ChatDatabase
+from file_database import FileManager
 
 load_dotenv()
 
@@ -27,12 +28,14 @@ load_dotenv()
 # mistral_agent = MistralAgent(llm_provider=provider, debug_output=True)
 # llm_sampling_settings = LlamaCppSamplingSettings()
 
-provider = OpenAIChatAPI(api_key=os.getenv("API_KEY"), base_url="https://openrouter.ai/api/v1", model="meta-llama/llama-3.1-405b-instruct")
+provider = OpenAIChatAPI(api_key=os.getenv("API_KEY"), base_url="https://openrouter.ai/api/v1",
+                         model="meta-llama/llama-3.1-405b-instruct")
 mistral_agent = ChatAPIAgent(chat_api=provider, debug_output=True)
 llm_sampling_settings = OpenAISettings()
 
 chat_history = ChatHistory()
 db = ChatDatabase()
+file_db = FileManager()  # Initialize the file database
 
 
 # Pydantic models for validation
@@ -112,6 +115,23 @@ class GenerationRequest(BaseModel):
     agent_id: int
     messages: List[Message]
     settings: Settings
+
+
+class FileCreate(BaseModel):
+    path: str
+    content: str
+
+
+class FileUpdate(BaseModel):
+    content: str
+
+
+class FileResponseDatabase(BaseModel):
+    id: int
+    path: str
+    content: str
+    created_at: str
+    updated_at: str
 
 
 app = FastAPI()
@@ -342,6 +362,93 @@ def get_chat_messages(chat_id: int):
         "timestamp": message.timestamp.strftime("%m/%d/%Y, %H:%M:%S"),
         "chat_id": chat_id
     } for message in messages]
+
+
+@app.post("/files/", response_model=FileResponseDatabase)
+def create_file(file: FileCreate):
+    try:
+        file_id = file_db.add_file(file.path, file.content)
+        file_record = file_db.get_file(file_id)
+        if file_record:
+            return FileResponseDatabase(
+                id=file_record.id,
+                path=file_record.path,
+                content=file_record.content,
+                created_at=file_record.created_at.strftime("%Y-%m-%d %H:%M:%S"),
+                updated_at=file_record.updated_at.strftime("%Y-%m-%d %H:%M:%S")
+            )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.get("/files/{file_id}", response_model=FileResponseDatabase)
+def get_file(file_id: int):
+    file_record = file_db.get_file(file_id)
+    if file_record:
+        return FileResponseDatabase(
+            id=file_record.id,
+            path=file_record.path,
+            content=file_record.content,
+            created_at=file_record.created_at.strftime("%Y-%m-%d %H:%M:%S"),
+            updated_at=file_record.updated_at.strftime("%Y-%m-%d %H:%M:%S")
+        )
+    else:
+        raise HTTPException(status_code=404, detail="File not found.")
+
+
+@app.get("/files/path/{file_path}", response_model=FileResponseDatabase)
+def get_file_by_path(file_path: str):
+    file_record = file_db.get_file_by_path(file_path)
+    if file_record:
+        return FileResponseDatabase(
+            id=file_record.id,
+            path=file_record.path,
+            content=file_record.content,
+            created_at=file_record.created_at.strftime("%Y-%m-%d %H:%M:%S"),
+            updated_at=file_record.updated_at.strftime("%Y-%m-%d %H:%M:%S")
+        )
+    else:
+        raise HTTPException(status_code=404, detail="File not found.")
+
+
+@app.put("/files/{file_id}", response_model=FileResponseDatabase)
+def update_file(file_id: int, file: FileUpdate):
+    try:
+        file_db.update_file(file_id, file.content)
+        file_record = file_db.get_file(file_id)
+        return FileResponseDatabase(
+            id=file_record.id,
+            path=file_record.path,
+            content=file_record.content,
+            created_at=file_record.created_at.strftime("%Y-%m-%d %H:%M:%S"),
+            updated_at=file_record.updated_at.strftime("%Y-%m-%d %H:%M:%S")
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+
+@app.delete("/files/{file_id}")
+def delete_file(file_id: int):
+    try:
+        file_db.delete_file(file_id)
+        return {"message": "File deleted successfully."}
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+
+@app.get("/files/", response_model=List[FileResponseDatabase])
+def list_files():
+    files = file_db.get_all_files()
+    return [
+        FileResponseDatabase(
+            id=file.id,
+            path=file.path,
+            content=file.content,
+            created_at=file.created_at.strftime("%Y-%m-%d %H:%M:%S"),
+            updated_at=file.updated_at.strftime("%Y-%m-%d %H:%M:%S")
+        )
+        for file in files
+    ]
 
 
 if __name__ == "__main__":
