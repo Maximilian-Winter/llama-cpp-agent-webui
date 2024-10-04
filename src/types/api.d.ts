@@ -5,3 +5,7 @@ export interface FileResponse {
     created_at: string;
     updated_at: string;
 }
+export interface FilePathResponse {
+    id: number;
+    path: string;
+}

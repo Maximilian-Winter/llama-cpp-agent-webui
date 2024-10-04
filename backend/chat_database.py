@@ -56,9 +56,6 @@ class ChatSettings(Base):
     chat = relationship("Chat", back_populates="settings")
 
 
-
-
-
 class ChatDatabase:
     def __init__(self, db_url='sqlite:///chat_app.db'):
         self.engine = create_engine(db_url, echo=False)

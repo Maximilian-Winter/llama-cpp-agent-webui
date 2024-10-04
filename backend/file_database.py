@@ -1,14 +1,26 @@
 import datetime
 from contextlib import contextmanager
+from types import SimpleNamespace
 
 from sqlalchemy import create_engine, Column, Integer, String, DateTime, Text
-from sqlalchemy.orm import DeclarativeBase
+from sqlalchemy.orm import DeclarativeBase, declared_attr
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import IntegrityError
 
 
 class Base(DeclarativeBase):
-    pass
+    @declared_attr
+    def __tablename__(cls):
+        return cls.__name__.lower()
+
+    created_at = Column(DateTime, default=datetime.datetime.now())
+    updated_at = Column(DateTime, default=datetime.datetime.now(), onupdate=datetime.datetime.now())
+
+    def to_dict(self):
+        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
+
+    def to_obj(self):
+        return SimpleNamespace(**self.to_dict())
 
 
 class File(Base):
@@ -57,7 +69,7 @@ class FileManager:
         with self.session_scope() as session:
             file = session.query(File).filter_by(id=file_id).first()
             if file:
-                return file.id, file.path, file.content
+                return file.to_obj()
             else:
                 return None
 
@@ -72,7 +84,7 @@ class FileManager:
     def get_all_file_paths(self):
         with self.session_scope() as session:
             files = session.query(File).all()
-            return [(file.id, file.path) for file in files]
+            return [file.to_obj() for file in files]
 
     def get_all_files(self):
         with self.session_scope() as session:
@@ -86,6 +98,14 @@ class FileManager:
                 file.content = content
             else:
                 raise ValueError(f"File with id {file_id} not found.")
+
+    def delete_file(self, file_id):
+        with self.session_scope() as session:
+            file = session.query(File).filter_by(id=file_id).first()
+            if file:
+                session.delete(file)
+                return True
+            return False
 
     def __enter__(self):
         return self

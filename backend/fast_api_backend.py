@@ -134,6 +134,10 @@ class FileResponseDatabase(BaseModel):
     updated_at: str
 
 
+class FilePathResponseDatabase(BaseModel):
+    id: int
+    path: str
+
 app = FastAPI()
 
 origins = [
@@ -449,6 +453,26 @@ def list_files():
         )
         for file in files
     ]
+
+
+@app.get("/file-paths/", response_model=List[FilePathResponseDatabase])
+def list_file_paths():
+    files = file_db.get_all_file_paths()
+    return [
+        FilePathResponseDatabase(
+            id=file.id,
+            path=file.path,
+        )
+        for file in files
+    ]
+
+
+@app.exception_handler(HTTPException)
+async def http_exception_handler(request: Request, exc: HTTPException):
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"message": str(exc.detail), "request_body": (await request.body()).decode("utf-8")},
+    )
 
 
 if __name__ == "__main__":

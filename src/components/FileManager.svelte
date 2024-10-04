@@ -1,27 +1,38 @@
 <script lang="ts">
+    import {onMount} from "svelte";
     import FileTree from './FileTree.svelte';
-    import { fileContent, selectedFilePath, reloadFileTree } from '../stores/file_store';
-    import { createFile, updateFile, getFileByPath } from '../api/files';
-
+    import { fileContent, selectedFilePath } from '../stores/file_store';
+    import { getFilePaths, createFile, updateFile, getFileByPath } from '../api/files';
+    import type {FilePathResponse} from "../types/api";
 
     // Local variables
+    let files: FilePathResponse[] = [];
     let newFilePath: string = '';
     let newFileContent: string = '';
     let isEditing: boolean = false;
 
-    // Fetch file content when a file is selected
-    $: if ($selectedFilePath) {
-        getFileByPath($selectedFilePath).then((file) => {
-            fileContent.set(file.content);
-            isEditing = true;
-        }).catch(() => {
+    onMount(() => {
+        getFilePaths().then((filePaths) => {
+            files = filePaths;
+        });
+    })
+    selectedFilePath.subscribe((filePath) =>{
+        if(filePath !== '')
+        {
+            getFileByPath(filePath).then((file) => {
+                fileContent.set(file.content);
+                isEditing = true;
+            }).catch(() => {
+                fileContent.set('');
+                isEditing = false;
+            });
+        }
+        else
+        {
             fileContent.set('');
             isEditing = false;
-        });
-    } else {
-        fileContent.set('');
-        isEditing = false;
-    }
+        }
+    });
 
     // Function to handle file upload or update
     async function saveFile() {
@@ -31,7 +42,9 @@
                 const file = await getFileByPath($selectedFilePath);
                 await updateFile(file.id, $fileContent);
                 alert('File updated successfully.');
-
+                selectedFilePath.set('')
+                fileContent.set('');
+                isEditing = false;
             } catch (error) {
                 alert('Error updating file.');
             }
@@ -50,6 +63,7 @@
                 alert('Error creating file. File path may already exist.');
             }
         }
+        files = await getFilePaths();
     }
 </script>
 
@@ -60,7 +74,7 @@
 <div class="flex min-h-screen w-full bg-[#0d1117] text-slate-300">
     <!-- Left Side: File Tree -->
     <div class="w-1/4 border-r border-gray-700 p-4">
-        <FileTree {reloadFileTree} />
+        <FileTree {files} />
     </div>
 
     <!-- Right Side: File Editor -->
@@ -72,7 +86,7 @@
             {#if isEditing}
                 <!-- Editing Existing File -->
                 <div>
-                    <label for="file-path-input" class="block text-sm font-medium">Agent Description</label>
+                    <label for="file-path-input" class="block text-sm font-medium">File Path</label>
                     <input
                             id="file-path-input"
                             type="text"

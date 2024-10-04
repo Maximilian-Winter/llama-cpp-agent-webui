@@ -1,5 +1,7 @@
 <script lang="ts">
-    export let files: string[] = [];
+    import type {FilePathResponse} from "../types/api";
+
+    export let files: FilePathResponse[] = [];
 
     interface TreeNode {
         name: string;
@@ -7,11 +9,11 @@
         children: TreeNode[];
     }
 
-    function buildTree(paths: string[]): TreeNode[] {
+    function buildTree(paths: FilePathResponse[]): TreeNode[] {
         const root: TreeNode[] = [];
 
         for (const path of paths) {
-            const parts = path.split('/');
+            const parts = path.path.split('/');
             let currentLevel = root;
 
             for (let i = 0; i < parts.length; i++) {
@@ -66,7 +68,7 @@
     <li>
         {#if $$props.node}
             {#if $$props.node.type === 'file'}
-                <a>
+                <a href="/files/{$$props.node.name}">
                     <svg
                             xmlns="http://www.w3.org/2000/svg"
                             fill="none"
