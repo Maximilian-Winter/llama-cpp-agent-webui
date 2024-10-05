@@ -1,11 +1,11 @@
 <script lang="ts">
     import { createEventDispatcher } from 'svelte';
-    import {Agent} from "../stores/app_store.js";
+
 
     const dispatch = createEventDispatcher();
-    export let agentId: number;
-    function delete_agent(id: number) {
-        dispatch('delete_agent', {
+    export let chatId: number;
+    function delete_chat(id: number) {
+        dispatch('delete_chat', {
             id
         });
     }
@@ -17,10 +17,10 @@
 
 <div class="popup">
     <div class="popup-content">
-        <h2>Delete Agent</h2>
-        <p>Are you sure you want to delete this agent?</p>
+        <h2>Delete Chat</h2>
+        <p>Are you sure you want to delete this chat?</p>
         <div class="button-group">
-            <button on:click={() => delete_agent(agentId)} class="delete-btn">Delete</button>
+            <button on:click={() => delete_chat(chatId)} class="delete-btn">Delete</button>
             <button on:click={closePopup} class="cancel-btn">Cancel</button>
         </div>
     </div>

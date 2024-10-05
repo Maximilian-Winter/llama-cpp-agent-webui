@@ -1,27 +1,23 @@
 <script lang="ts">
     // Define the type for individual panels
-    import {onMount} from "svelte";
+    import {createEventDispatcher, onMount} from "svelte";
     import {
+        Agent,
         app_mode,
-        Chat, current_agent_description,
-        current_agent_id, current_agent_instructions,
+        current_agent_description,
+        current_agent_id,
+        current_agent_instructions,
         current_agent_name,
         current_chat,
         Message,
-        text
-    } from "../stores/app_store";
-    import DeleteAgent from "./delete_agent.svelte";
-    import { createEventDispatcher } from 'svelte';
+    } from "$lib/stores/app_store";
+    import DeleteAgent from "$lib/components/delete_agent.svelte";
+    import {createChat} from "$lib/api/chats";
+    import {deleteAgent, getAgents} from "$lib/api/agents";
 
     const dispatch = createEventDispatcher();
-    type Panel = {
-        id: number;
-        name: string;
-        description: string;
-        instructions: string;
-    };
 
-    let panels: Panel[] = [];
+    let agents: Agent[] = [];
     async function update_agent(id: number, name:string, description:string, instructions:string): Promise<void> {
         current_agent_id.set(id)
         current_agent_name.set(name)
@@ -29,12 +25,8 @@
         current_agent_instructions.set(instructions)
         app_mode.set("agent_update")
     }
-    async function fetchPanelData(): Promise<Panel[]> {
-        const response = await fetch('http://localhost:8042/agents/');
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return await response.json();
+    async function fetchAgents(): Promise<Agent[]> {
+        return await getAgents();
     }
 
     let deletingAgent = false;
@@ -50,16 +42,11 @@
         id: number;
     }
     async function handleDeleteAgent(e: CustomEvent<AgentId>): Promise<void> {
-        await fetch('http://localhost:8042/agents/' + e.detail.id, {
-            method: 'DELETE',
-            headers: {
-                'Content-Type': 'application/json',
-            }
-        });
+        await deleteAgent(e.detail.id);
         deletingAgent = false;
-        fetchPanelData()
+        fetchAgents()
             .then(data => {
-                panels = data;
+                agents = data;
             })
             .catch(error => {
                 console.error('Failed to fetch panels:', error);
@@ -70,35 +57,18 @@
         deletingAgent = false;
     }
     async function start_chat(id: number): Promise<void> {
-        const payload = {
-            title: "New Chat",
-            agent_id: id
-        };
         current_agent_id.set(id)
-        const response = await fetch('http://localhost:8042/chats/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(payload),
-        });
-        if (response.ok) {
-            let new_chat = await response.json()
-            current_chat.set(new Chat(new_chat.id, new_chat.title, new_chat.agent, new_chat.instructions));
-            current_chat.update(chat => {
-                const newMessage = new Message(-1, "system", new_chat.agent.instructions, "Today");
-                chat.messages.push(newMessage);
-                return chat;
-            });
-            dispatch('newChat');
-            app_mode.set("chat");
-        }
+        const response = await createChat("New Chat", id);
+        const newMessage = new Message(-1, "system", response.agent.instructions, "Today");
+        response.messages.push(newMessage);
+        current_chat.set(response);
 
+        dispatch('newChat');
     }
     onMount(() => {
-        fetchPanelData()
+        fetchAgents()
             .then(data => {
-                panels = data;
+                agents = data;
             })
             .catch(error => {
                 console.error('Failed to fetch panels:', error);
@@ -111,7 +81,7 @@
     <div class="mx-auto my-8 w-full max-w-7xl px-4">
         <h1 class="mb-8 text-3xl font-bold">Agent Selection</h1>
         <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-            {#each panels as { id, name, description, instructions }}
+            {#each agents as { id, name, description, instructions }}
                 <div class="overflow-hidden rounded-lg bg-[#161b22] shadow-md">
                     <div class="p-4">
                         <h2 class="mb-2 text-xl font-bold">{name}</h2>

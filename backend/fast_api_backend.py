@@ -1,5 +1,3 @@
-import asyncio
-import json
 import os
 from typing import List, Optional
 
@@ -129,6 +127,7 @@ class FileUpdate(BaseModel):
 class FileResponseDatabase(BaseModel):
     id: int
     path: str
+    filename: str
     content: str
     created_at: str
     updated_at: str
@@ -136,6 +135,10 @@ class FileResponseDatabase(BaseModel):
 
 class FilePathResponseDatabase(BaseModel):
     id: int
+    path: str
+
+
+class FileFromPathRequest(BaseModel):
     path: str
 
 app = FastAPI()
@@ -155,22 +158,6 @@ app.add_middleware(
 )
 
 templates = Jinja2Templates(directory="templates")
-
-
-@app.get("/", response_class=HTMLResponse)
-async def llama(request: Request):
-    return {"error": "File not found!"}
-    # return templates.TemplateResponse("../src/a.html", {"request": request})
-
-
-# Serve files
-@app.get("/{name_file}")
-def get_file(name_file: str):
-    if os.path.exists(path=os.getcwd() + "../static/" + name_file):
-        return FileResponse(path=os.getcwd() + "../static/" + name_file)
-    else:
-        print("File: " + name_file + "doesn't exist!")
-    return {"error": "File not found!"}
 
 
 @app.post("/llama/complete")
@@ -377,6 +364,7 @@ def create_file(file: FileCreate):
             return FileResponseDatabase(
                 id=file_record.id,
                 path=file_record.path,
+                filename=file_record.filename,
                 content=file_record.content,
                 created_at=file_record.created_at.strftime("%Y-%m-%d %H:%M:%S"),
                 updated_at=file_record.updated_at.strftime("%Y-%m-%d %H:%M:%S")
@@ -390,27 +378,29 @@ def get_file(file_id: int):
     file_record = file_db.get_file(file_id)
     if file_record:
         return FileResponseDatabase(
-            id=file_record.id,
-            path=file_record.path,
-            content=file_record.content,
-            created_at=file_record.created_at.strftime("%Y-%m-%d %H:%M:%S"),
-            updated_at=file_record.updated_at.strftime("%Y-%m-%d %H:%M:%S")
-        )
+                id=file_record.id,
+                path=file_record.path,
+                filename=file_record.filename,
+                content=file_record.content,
+                created_at=file_record.created_at.strftime("%Y-%m-%d %H:%M:%S"),
+                updated_at=file_record.updated_at.strftime("%Y-%m-%d %H:%M:%S")
+            )
     else:
         raise HTTPException(status_code=404, detail="File not found.")
 
 
-@app.get("/files/path/{file_path}", response_model=FileResponseDatabase)
-def get_file_by_path(file_path: str):
-    file_record = file_db.get_file_by_path(file_path)
+@app.post("/files/path/", response_model=FileResponseDatabase)
+def get_file_by_path(request: FileFromPathRequest):
+    file_record = file_db.get_file_by_path(request.path)
     if file_record:
         return FileResponseDatabase(
-            id=file_record.id,
-            path=file_record.path,
-            content=file_record.content,
-            created_at=file_record.created_at.strftime("%Y-%m-%d %H:%M:%S"),
-            updated_at=file_record.updated_at.strftime("%Y-%m-%d %H:%M:%S")
-        )
+                id=file_record.id,
+                path=file_record.path,
+                filename=file_record.filename,
+                content=file_record.content,
+                created_at=file_record.created_at.strftime("%Y-%m-%d %H:%M:%S"),
+                updated_at=file_record.updated_at.strftime("%Y-%m-%d %H:%M:%S")
+            )
     else:
         raise HTTPException(status_code=404, detail="File not found.")
 
@@ -421,12 +411,13 @@ def update_file(file_id: int, file: FileUpdate):
         file_db.update_file(file_id, file.content)
         file_record = file_db.get_file(file_id)
         return FileResponseDatabase(
-            id=file_record.id,
-            path=file_record.path,
-            content=file_record.content,
-            created_at=file_record.created_at.strftime("%Y-%m-%d %H:%M:%S"),
-            updated_at=file_record.updated_at.strftime("%Y-%m-%d %H:%M:%S")
-        )
+                id=file_record.id,
+                path=file_record.path,
+                filename=file_record.filename,
+                content=file_record.content,
+                created_at=file_record.created_at.strftime("%Y-%m-%d %H:%M:%S"),
+                updated_at=file_record.updated_at.strftime("%Y-%m-%d %H:%M:%S")
+            )
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
 
@@ -447,6 +438,7 @@ def list_files():
         FileResponseDatabase(
             id=file.id,
             path=file.path,
+            filename=file.filename,
             content=file.content,
             created_at=file.created_at.strftime("%Y-%m-%d %H:%M:%S"),
             updated_at=file.updated_at.strftime("%Y-%m-%d %H:%M:%S")
@@ -465,6 +457,22 @@ def list_file_paths():
         )
         for file in files
     ]
+
+
+@app.get("/", response_class=HTMLResponse)
+async def llama(request: Request):
+    return {"error": "File not found!"}
+    # return templates.TemplateResponse("../src/a.html", {"request": request})
+
+
+# Serve files
+@app.get("/{name_file}")
+def get_file(name_file: str):
+    if os.path.exists(path=os.getcwd() + "../static/" + name_file):
+        return FileResponse(path=os.getcwd() + "../static/" + name_file)
+    else:
+        print("File: " + name_file + "doesn't exist!")
+    return {"error": "File not found!"}
 
 
 @app.exception_handler(HTTPException)

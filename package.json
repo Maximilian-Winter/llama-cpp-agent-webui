@@ -38,8 +38,10 @@
 	"type": "module",
 	"dependencies": {
 		"@types/prismjs": "^1.26.4",
+		"daisyui": "^4.12.12",
 		"dompurify": "^3.1.6",
 		"highlight.js": "^11.10.0",
+		"lucide-svelte": "^0.447.0",
 		"marked": "^13.0.3",
 		"prismjs": "^1.29.0"
 	}

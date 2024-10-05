@@ -4,10 +4,10 @@
         current_chat,
         Message, sidebarVisible,
         text
-    } from '../stores/app_store.js';
+    } from '$lib/stores/app_store.js';
     import { createEventDispatcher } from 'svelte';
-    import EditMessage from './edit_message.svelte';
-    import CodeBlock from './code_block.svelte';
+    import EditMessage from '$lib/components/edit_message.svelte';
+    import CodeBlock from '$lib/components/code_block.svelte';
 
     const dispatch = createEventDispatcher();
     async function handleKeydown(event: KeyboardEvent): Promise<void> {
@@ -66,7 +66,7 @@
             console.error('Failed to start session');
         }
     }
-    function subscribeToUpdates(message_id: number, chat_id: number, message_ids: [number]) {
+    function subscribeToUpdates(last_message_index: number, chat_id: number, message_ids: [number]) {
         current_chat.update(chat => {
             if (chat_id === -1) {
                 chat.id = chat_id
@@ -94,7 +94,7 @@
                 const payload = {
                     chat_id: $current_chat.id,
                     role: "assistant",
-                    content: $current_chat.messages[message_id].content
+                    content: $current_chat.messages[last_message_index].content
                 };
                 let response = await fetch('http://localhost:8042/messages/', {
                     method: 'POST',
@@ -105,8 +105,8 @@
                 });
                 await response.json().then((res) => {
                     current_chat.update(chat => {
-                        chat.messages[message_id].id = res.id;
-                        chat.messages[message_id].timestamp = res.timestamp;
+                        chat.messages[last_message_index].id = res.id;
+                        chat.messages[last_message_index].timestamp = res.timestamp;
                         return chat;
                     });
                 })
@@ -126,7 +126,7 @@
                 return
             }else {
                 current_chat.update(chat => {
-                    chat.messages[message_id].content += event.data;
+                    chat.messages[last_message_index].content += event.data;
                     return chat;
                 });
 

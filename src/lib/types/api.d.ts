@@ -1,6 +1,7 @@
 export interface FileResponse {
     id: number;
     path: string;
+    filename: string;
     content: string;
     created_at: string;
     updated_at: string;

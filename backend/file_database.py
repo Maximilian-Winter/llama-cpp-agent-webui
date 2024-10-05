@@ -1,4 +1,5 @@
 import datetime
+import os.path
 from contextlib import contextmanager
 from types import SimpleNamespace
 
@@ -28,6 +29,7 @@ class File(Base):
 
     id = Column(Integer, primary_key=True)
     path = Column(String, unique=True)
+    filename = Column(String)
     content = Column(Text)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
     updated_at = Column(
@@ -56,7 +58,7 @@ class FileManager:
 
     def add_file(self, path, content):
         with self.session_scope() as session:
-            file = File(path=path, content=content)
+            file = File(filename=os.path.basename(path), path=path, content=content)
             session.add(file)
             try:
                 session.commit()
@@ -77,7 +79,7 @@ class FileManager:
         with self.session_scope() as session:
             file = session.query(File).filter_by(path=file_path).first()
             if file:
-                return file.id, file.path, file.content
+                return file.to_obj()
             else:
                 return None
 

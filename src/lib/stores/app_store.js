@@ -4,11 +4,13 @@ export class Agent {
     /**
      * @param {number} id
      * @param {string} name
+     * @param {string} description
      * @param {string} instructions
      */
-    constructor(id, name, instructions) {
+    constructor(id, name, description, instructions) {
         this.id = id;
         this.name = name;
+        this.description = description;
         this.instructions = instructions;
     }
 }
@@ -124,7 +126,7 @@ export class Chat {
      * @param {string} [timestamp="Today"] - Timestamp for the chat
      * @param {GenerationSettings} [settings=new GenerationSettings()] - Generation settings for the chat
      */
-    constructor(id, title = "", agent = new Agent(1, "Helpful Assistant", "You are a helpful assistant."), messages = [], timestamp = "Today", settings = new GenerationSettings()) {
+    constructor(id, title = "", agent = new Agent(1, "Helpful Assistant", "A helpful assistant.", "You are a helpful assistant."), messages = [], timestamp = "Today", settings = new GenerationSettings()) {
         this.id = id;
         this.title = title;
         this.agent = agent;

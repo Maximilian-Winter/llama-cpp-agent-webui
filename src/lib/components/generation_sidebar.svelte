@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { current_chat, sidebarVisible, GenerationSettings } from "../stores/app_store";
+    import { current_chat, sidebarVisible, GenerationSettings } from "$lib/stores/app_store";
     import { createEventDispatcher } from 'svelte';
 
     const dispatch = createEventDispatcher();
