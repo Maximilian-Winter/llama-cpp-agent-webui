@@ -3,10 +3,9 @@
         current_agent_id,
         current_agent_name,
         current_agent_description,
-        current_agent_instructions,
-        app_mode
-    } from "$lib/stores/app_store.js";
-    import {updateAgent} from "$lib/api/agents.js";
+        current_agent_instructions
+    } from "$lib/stores/app_store";
+    import {updateAgent} from "$lib/api/agents";
     import {goto} from "$app/navigation";
 
     async function update_agent() {

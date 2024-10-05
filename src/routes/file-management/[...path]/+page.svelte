@@ -1,12 +1,13 @@
 <script lang="ts">
     import { page } from '$app/stores';
-    import { onMount } from 'svelte';
+    import {onMount, tick} from 'svelte';
     import FileTree from '$lib/components/file_tree.svelte';
     import { getFilePaths, getFileByPath, updateFile, deleteFile } from '$lib/api/files';
     import type { FilePathResponse, FileResponse } from "$lib/types/api";
     import { selectedFilePath, reloadFileTree } from "$lib/stores/file_store";
     import { Pencil, Save, X, Delete } from 'lucide-svelte';
     import {goto} from "$app/navigation";
+    import hljs from 'highlight.js';
 
     let files: FilePathResponse[] = [];
     let currentFilePath = '';
@@ -19,6 +20,7 @@
         await loadFiles();
         currentFilePath = $page.params.path;
         await handleFile();
+
     });
 
     async function loadFiles() {
@@ -28,7 +30,7 @@
     selectedFilePath.subscribe((filePath) => {
         if (filePath !== '') {
             currentFilePath = filePath;
-            handleFile();
+
         }
     });
     async function _goto(url: string): Promise<void> {
@@ -42,6 +44,7 @@
                 currentFileName = file.filename;
                 currentFileId = file.id;
                 isEditing = false;
+
             } catch (error) {
                 console.error('Error fetching file:', error);
                 fileContent = 'Error: File not found or couldn\'t be loaded.';

@@ -32,8 +32,6 @@ mistral_agent = ChatAPIAgent(chat_api=provider, debug_output=True)
 llm_sampling_settings = OpenAISettings()
 
 chat_history = ChatHistory()
-db = ChatDatabase()
-file_db = FileManager()  # Initialize the file database
 
 
 # Pydantic models for validation
@@ -161,263 +159,284 @@ templates = Jinja2Templates(directory="templates")
 
 
 @app.post("/llama/complete")
-async def complete_llama(request: Request, generationRequest: GenerationRequest):
-    chat_id = generationRequest.chat_id
-    if chat_id == -1:
-        chat_id = db.add_chat_with_agent_id("New Chat", agent_id=generationRequest.agent_id)
-        db.add_or_update_chat_settings(chat_id, generationRequest.settings.model_dump())
-    else:
-        db.add_or_update_chat_settings(chat_id, generationRequest.settings.model_dump())
-    messages_ids = []
-    global llm_sampling_settings, mistral_agent, chat_history
-    chat_history = ChatHistory()
-    agent = db.get_agent_by_id(generationRequest.agent_id)
-    system_message = agent.instructions
-
-    chat_history.add_system_message(system_message)
-
-    for message in generationRequest.messages:
-        if message.id == -1:
-            message_id, _ = db.add_message(chat_id, message.role, message.content)
+async def complete_llama(generationRequest: GenerationRequest):
+    with ChatDatabase() as db:
+        chat_id = generationRequest.chat_id
+        if chat_id == -1:
+            chat_id = db.add_chat_with_agent_id("New Chat", agent_id=generationRequest.agent_id)
+            db.add_or_update_chat_settings(chat_id, generationRequest.settings.model_dump())
         else:
-            message_id = message.id
-        if message.role != "system":
-            chat_history.add_message(message.role, message.content)
-        messages_ids.append(message_id)
+            db.add_or_update_chat_settings(chat_id, generationRequest.settings.model_dump())
+        messages_ids = []
+        global llm_sampling_settings, mistral_agent, chat_history
+        chat_history = ChatHistory()
+        agent = db.get_agent_by_id(generationRequest.agent_id)
+        system_message = agent.instructions
 
-    settings_dict = generationRequest.settings.model_dump()
-    llm_sampling_settings.max_tokens = settings_dict["max_tokens"]
-    llm_sampling_settings.temperature = settings_dict["temperature"]
-    llm_sampling_settings.top_p = settings_dict["top_p"]
-    # llm_sampling_settings.typical_p = settings_dict["typ_p"]
-    # llm_sampling_settings.min_p = settings_dict["min_p"]
-    # llm_sampling_settings.top_k = settings_dict["top_k"]
-    # llm_sampling_settings.repeat_penalty = settings_dict["rep_pen"]
-    # llm_sampling_settings.repeat_penalty_range = settings_dict["rep_pen_range"]
-    # llm_sampling_settings.tfs_z = settings_dict["tfsz"]
+        chat_history.add_system_message(system_message)
 
-    return {"chat_id": chat_id, "messages": messages_ids}
+        for message in generationRequest.messages:
+            if message.id == -1:
+                message_id, _ = db.add_message(chat_id, message.role, message.content)
+            else:
+                message_id = message.id
+            if message.role != "system":
+                chat_history.add_message(message.role, message.content)
+            messages_ids.append(message_id)
+
+        settings_dict = generationRequest.settings.model_dump()
+        llm_sampling_settings.max_tokens = settings_dict["max_tokens"]
+        llm_sampling_settings.temperature = settings_dict["temperature"]
+        llm_sampling_settings.top_p = settings_dict["top_p"]
+        # llm_sampling_settings.typical_p = settings_dict["typ_p"]
+        # llm_sampling_settings.min_p = settings_dict["min_p"]
+        # llm_sampling_settings.top_k = settings_dict["top_k"]
+        # llm_sampling_settings.repeat_penalty = settings_dict["rep_pen"]
+        # llm_sampling_settings.repeat_penalty_range = settings_dict["rep_pen_range"]
+        # llm_sampling_settings.tfs_z = settings_dict["tfsz"]
+
+        return {"chat_id": chat_id, "messages": messages_ids}
 
 
 @app.get("/llama/stream")
 async def stream_llama(request: Request):
-    global llm_sampling_settings, mistral_agent, chat_history
+    with ChatDatabase() as db:
+        global llm_sampling_settings, mistral_agent, chat_history
 
-    async def async_generator():
-        for item in mistral_agent.get_streaming_response(
-                messages=chat_history.to_list(),
-                settings=llm_sampling_settings):
-            yield item
+        async def async_generator():
+            for item in mistral_agent.get_streaming_response(
+                    messages=chat_history.to_list(),
+                    settings=llm_sampling_settings):
+                yield item
 
-    async def server_sent_events():
-        async for item in async_generator():
-            if await request.is_disconnected():
-                break
+        async def server_sent_events():
+            async for item in async_generator():
+                if await request.is_disconnected():
+                    break
 
-            result = copy.deepcopy(item)
-            text = result
+                result = copy.deepcopy(item)
+                text = result
 
-            yield {"data": text}
-        yield {"data": "GENERATION_STOPPED"}
+                yield {"data": text}
+            yield {"data": "GENERATION_STOPPED"}
 
-    return EventSourceResponse(server_sent_events())
+        return EventSourceResponse(server_sent_events())
 
 
 # Endpoints
 @app.post("/agents/", response_model=AgentResponse)
 def create_agent(agent: AgentCreate):
-    agent_id = db.add_agent(agent.name, agent.description, agent.instructions)
-    if agent_id:
-        return {"id": agent_id, "name": agent.name, "description": agent.description,
-                "instructions": agent.instructions}
-    raise HTTPException(status_code=400, detail="Failed to create agent.")
+    with ChatDatabase() as db:
+        agent_id = db.add_agent(agent.name, agent.description, agent.instructions)
+        if agent_id:
+            return {"id": agent_id, "name": agent.name, "description": agent.description,
+                    "instructions": agent.instructions}
+        raise HTTPException(status_code=400, detail="Failed to create agent.")
 
 
 @app.put("/agents/{agent_id}")
 def update_agent(agent_id: int, agent: AgentUpdate):
-    db.update_agent(agent_id, agent.name, agent.description, agent.instructions)
-    return {"message": "Agent updated successfully."}
+    with ChatDatabase() as db:
+        db.update_agent(agent_id, agent.name, agent.description, agent.instructions)
+        return {"message": "Agent updated successfully."}
 
 
 @app.delete("/agents/{agent_id}")
 def delete_agent(agent_id: int):
-    db.delete_agent(agent_id)
-    return {"message": "Agent deleted successfully."}
+    with ChatDatabase() as db:
+        db.delete_agent(agent_id)
+        return {"message": "Agent deleted successfully."}
 
 
 @app.delete("/chats/{chat_id}")
 def delete_chat(chat_id: int):
-    db.delete_chat(chat_id)
-    return {"message": "Chat deleted successfully."}
+    with ChatDatabase() as db:
+        db.delete_chat(chat_id)
+        return {"message": "Chat deleted successfully."}
 
 
 @app.delete("/messages/{message_id}")
 def delete_message(message_id: int):
-    if db.delete_message(message_id):
-        return {"message": "Message deleted successfully."}
-    raise HTTPException(status_code=404, detail="Message not found.")
+    with ChatDatabase() as db:
+        if db.delete_message(message_id):
+            return {"message": "Message deleted successfully."}
+        raise HTTPException(status_code=404, detail="Message not found.")
 
 
 @app.post("/chats/", response_model=ChatResponse)
 def create_chat(chat: ChatCreate):
-    chat_id = db.add_chat_with_agent_id(chat.title, chat.agent_id)
-    if chat_id:
-        return db.get_chat_details(chat_id)  # Assuming you implement a method to fetch chat details
-    raise HTTPException(status_code=400, detail="Failed to create chat.")
+    with ChatDatabase() as db:
+        chat_id = db.add_chat_with_agent_id(chat.title, chat.agent_id)
+        if chat_id:
+            return db.get_chat_details(chat_id)  # Assuming you implement a method to fetch chat details
+        raise HTTPException(status_code=400, detail="Failed to create chat.")
 
 
 @app.post("/messages/", response_model=MessageResponse)
 def create_message(message: MessageCreate):
-    message_id, timestamp = db.add_message(message.chat_id, message.role, message.content)
-    if message_id:
-        return {"id": message_id, "chat_id": message.chat_id, "role": message.role, "content": message.content,
-                "timestamp": timestamp.strftime("%d/%m/%Y %H:%M:%S")}
-    raise HTTPException(status_code=400, detail="Failed to add message.")
+    with ChatDatabase() as db:
+        message_id, timestamp = db.add_message(message.chat_id, message.role, message.content)
+        if message_id:
+            return {"id": message_id, "chat_id": message.chat_id, "role": message.role, "content": message.content,
+                    "timestamp": timestamp.strftime("%d/%m/%Y %H:%M:%S")}
+        raise HTTPException(status_code=400, detail="Failed to add message.")
 
 
 @app.put("/messages/")
 def edit_message(message: MessageEdit):
-    if db.edit_message(message.id, message.content):
-        return {"message": "Successfully edited message."}
-    raise HTTPException(status_code=400, detail="Failed to add message.")
+    with ChatDatabase() as db:
+        if db.edit_message(message.id, message.content):
+            return {"message": "Successfully edited message."}
+        raise HTTPException(status_code=400, detail="Failed to add message.")
 
 
 @app.get("/chats/{chat_id}", response_model=ChatResponse)
 def get_chat(chat_id: int):
-    chat = db.get_chat_details(chat_id)
-    if chat:
-        return chat
-    raise HTTPException(status_code=404, detail="Chat not found.")
+    with ChatDatabase() as db:
+        chat = db.get_chat_details(chat_id)
+        if chat:
+            return chat
+        raise HTTPException(status_code=404, detail="Chat not found.")
 
 
 @app.put("/chats/{chat_id}/settings")
 def update_chat_settings(chat_id: int, settings: Settings):
-    db.add_or_update_chat_settings(chat_id, settings.model_dump())
-    return {"message": "Chat settings updated successfully."}
+    with ChatDatabase() as db:
+        db.add_or_update_chat_settings(chat_id, settings.model_dump())
+        return {"message": "Chat settings updated successfully."}
 
 
 @app.put("/chats/{chat_id}/{title}")
 def get_chat(chat_id: int, title: str):
-    result = db.set_chat_title(chat_id, title)  # You need to implement this method in ChatDatabase
-    if result:
-        return {"message": "Title changed successfully."}
-    raise HTTPException(status_code=404, detail="Chat not found.")
+    with ChatDatabase() as db:
+        result = db.set_chat_title(chat_id, title)  # You need to implement this method in ChatDatabase
+        if result:
+            return {"message": "Title changed successfully."}
+        raise HTTPException(status_code=404, detail="Chat not found.")
 
 
 # Fetch all agents
 @app.get("/agents/", response_model=List[AgentResponse])
 def get_all_agents():
-    agents = db.get_all_agents()
-    return [{"id": agent.id, "name": agent.name, "description": agent.description, "instructions": agent.instructions}
-            for agent in agents]
+    with ChatDatabase() as db:
+        agents = db.get_all_agents()
+        return [{"id": agent.id, "name": agent.name, "description": agent.description, "instructions": agent.instructions}
+                for agent in agents]
 
 
 # Fetch all chats
 @app.get("/chats/", response_model=List[ChatResponse])
 def get_all_chats():
-    chats = db.get_all_chats()
-    # Assuming you extend get_all_chats to include agent and messages or adjust here accordingly
-    return [db.get_chat_details(chat.id) for chat in chats]
+    with ChatDatabase() as db:
+        chats = db.get_all_chats()
+        return [db.get_chat_details(chat.id) for chat in chats]
 
 
 # Search chats by title
 @app.get("/chats/search/", response_model=List[ChatResponse])
 def search_chats(title: str):
-    chats = db.search_chats_by_title(title)
-    return [{
-        "id": chat.id,
-        "title": chat.title,
-        "agent": {
-            "id": chat.agent.id,
-            "name": chat.agent.name,
-            "instructions": chat.agent.instructions
-        } if chat.agent else None,
-        "messages": [{
-            "id": message.id,
-            "role": message.role,
-            "content": message.content,
-            "timestamp": message.timestamp.strftime("%m/%d/%Y, %H:%M:%S"),
-            "chat_id": chat.id
-        } for message in chat.messages]
-    } for chat in chats]
+    with ChatDatabase() as db:
+        chats = db.search_chats_by_title(title)
+        return [{
+            "id": chat.id,
+            "title": chat.title,
+            "agent": {
+                "id": chat.agent.id,
+                "name": chat.agent.name,
+                "instructions": chat.agent.instructions
+            } if chat.agent else None,
+            "messages": [{
+                "id": message.id,
+                "role": message.role,
+                "content": message.content,
+                "timestamp": message.timestamp.strftime("%m/%d/%Y, %H:%M:%S"),
+                "chat_id": chat.id
+            } for message in chat.messages]
+        } for chat in chats]
 
 
 # Fetch all messages from a specific chat
 @app.get("/chats/{chat_id}/messages", response_model=List[MessageResponse])
 def get_chat_messages(chat_id: int):
-    messages = db.get_all_messages_from_chat(chat_id)
-    return [{
-        "id": message.id,
-        "role": message.role,
-        "content": message.content,
-        "timestamp": message.timestamp.strftime("%m/%d/%Y, %H:%M:%S"),
-        "chat_id": chat_id
-    } for message in messages]
+    with ChatDatabase() as db:
+        messages = db.get_all_messages_from_chat(chat_id)
+        return [{
+            "id": message.id,
+            "role": message.role,
+            "content": message.content,
+            "timestamp": message.timestamp.strftime("%m/%d/%Y, %H:%M:%S"),
+            "chat_id": chat_id
+        } for message in messages]
 
 
 @app.post("/files/", response_model=FileResponseDatabase)
 def create_file(file: FileCreate):
-    try:
-        file_id = file_db.add_file(file.path, file.content)
-        file_record = file_db.get_file(file_id)
-        if file_record:
-            return FileResponseDatabase(
-                id=file_record.id,
-                path=file_record.path,
-                filename=file_record.filename,
-                content=file_record.content,
-                created_at=file_record.created_at.strftime("%Y-%m-%d %H:%M:%S"),
-                updated_at=file_record.updated_at.strftime("%Y-%m-%d %H:%M:%S")
-            )
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    with FileManager() as file_db:
+        try:
+            file_id = file_db.add_file(file.path, file.content)
+            file_record = file_db.get_file(file_id)
+            if file_record:
+                return FileResponseDatabase(
+                    id=file_record.id,
+                    path=file_record.path,
+                    filename=file_record.filename,
+                    content=file_record.content,
+                    created_at=file_record.created_at.strftime("%Y-%m-%d %H:%M:%S"),
+                    updated_at=file_record.updated_at.strftime("%Y-%m-%d %H:%M:%S")
+                )
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=str(e))
 
 
 @app.get("/files/{file_id}", response_model=FileResponseDatabase)
 def get_file(file_id: int):
-    file_record = file_db.get_file(file_id)
-    if file_record:
-        return FileResponseDatabase(
-                id=file_record.id,
-                path=file_record.path,
-                filename=file_record.filename,
-                content=file_record.content,
-                created_at=file_record.created_at.strftime("%Y-%m-%d %H:%M:%S"),
-                updated_at=file_record.updated_at.strftime("%Y-%m-%d %H:%M:%S")
-            )
-    else:
-        raise HTTPException(status_code=404, detail="File not found.")
+    with FileManager() as file_db:
+
+        file_record = file_db.get_file(file_id)
+        if file_record:
+            return FileResponseDatabase(
+                    id=file_record.id,
+                    path=file_record.path,
+                    filename=file_record.filename,
+                    content=file_record.content,
+                    created_at=file_record.created_at.strftime("%Y-%m-%d %H:%M:%S"),
+                    updated_at=file_record.updated_at.strftime("%Y-%m-%d %H:%M:%S")
+                )
+        else:
+            raise HTTPException(status_code=404, detail="File not found.")
 
 
 @app.post("/files/path/", response_model=FileResponseDatabase)
 def get_file_by_path(request: FileFromPathRequest):
-    file_record = file_db.get_file_by_path(request.path)
-    if file_record:
-        return FileResponseDatabase(
-                id=file_record.id,
-                path=file_record.path,
-                filename=file_record.filename,
-                content=file_record.content,
-                created_at=file_record.created_at.strftime("%Y-%m-%d %H:%M:%S"),
-                updated_at=file_record.updated_at.strftime("%Y-%m-%d %H:%M:%S")
-            )
-    else:
-        raise HTTPException(status_code=404, detail="File not found.")
+    with FileManager() as file_db:
+        file_record = file_db.get_file_by_path(request.path)
+        if file_record:
+            return FileResponseDatabase(
+                    id=file_record.id,
+                    path=file_record.path,
+                    filename=file_record.filename,
+                    content=file_record.content,
+                    created_at=file_record.created_at.strftime("%Y-%m-%d %H:%M:%S"),
+                    updated_at=file_record.updated_at.strftime("%Y-%m-%d %H:%M:%S")
+                )
+        else:
+            raise HTTPException(status_code=404, detail="File not found.")
 
 
 @app.put("/files/{file_id}", response_model=FileResponseDatabase)
 def update_file(file_id: int, file: FileUpdate):
     try:
-        file_db.update_file(file_id, file.content)
-        file_record = file_db.get_file(file_id)
-        return FileResponseDatabase(
-                id=file_record.id,
-                path=file_record.path,
-                filename=file_record.filename,
-                content=file_record.content,
-                created_at=file_record.created_at.strftime("%Y-%m-%d %H:%M:%S"),
-                updated_at=file_record.updated_at.strftime("%Y-%m-%d %H:%M:%S")
-            )
+        with FileManager() as file_db:
+            file_db.update_file(file_id, file.content)
+            file_record = file_db.get_file(file_id)
+            return FileResponseDatabase(
+                    id=file_record.id,
+                    path=file_record.path,
+                    filename=file_record.filename,
+                    content=file_record.content,
+                    created_at=file_record.created_at.strftime("%Y-%m-%d %H:%M:%S"),
+                    updated_at=file_record.updated_at.strftime("%Y-%m-%d %H:%M:%S")
+                )
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
 
@@ -425,42 +444,45 @@ def update_file(file_id: int, file: FileUpdate):
 @app.delete("/files/{file_id}")
 def delete_file(file_id: int):
     try:
-        file_db.delete_file(file_id)
-        return {"message": "File deleted successfully."}
+        with FileManager() as file_db:
+            file_db.delete_file(file_id)
+            return {"message": "File deleted successfully."}
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
 
 
 @app.get("/files/", response_model=List[FileResponseDatabase])
 def list_files():
-    files = file_db.get_all_files()
-    return [
-        FileResponseDatabase(
-            id=file.id,
-            path=file.path,
-            filename=file.filename,
-            content=file.content,
-            created_at=file.created_at.strftime("%Y-%m-%d %H:%M:%S"),
-            updated_at=file.updated_at.strftime("%Y-%m-%d %H:%M:%S")
-        )
-        for file in files
-    ]
+    with FileManager() as file_db:
+        files = file_db.get_all_files()
+        return [
+            FileResponseDatabase(
+                id=file.id,
+                path=file.path,
+                filename=file.filename,
+                content=file.content,
+                created_at=file.created_at.strftime("%Y-%m-%d %H:%M:%S"),
+                updated_at=file.updated_at.strftime("%Y-%m-%d %H:%M:%S")
+            )
+            for file in files
+        ]
 
 
 @app.get("/file-paths/", response_model=List[FilePathResponseDatabase])
 def list_file_paths():
-    files = file_db.get_all_file_paths()
-    return [
-        FilePathResponseDatabase(
-            id=file.id,
-            path=file.path,
-        )
-        for file in files
-    ]
+    with FileManager() as file_db:
+        files = file_db.get_all_file_paths()
+        return [
+            FilePathResponseDatabase(
+                id=file.id,
+                path=file.path,
+            )
+            for file in files
+        ]
 
 
 @app.get("/", response_class=HTMLResponse)
-async def llama(request: Request):
+async def root(request: Request):
     return {"error": "File not found!"}
     # return templates.TemplateResponse("../src/a.html", {"request": request})
 

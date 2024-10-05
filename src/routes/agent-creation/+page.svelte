@@ -2,10 +2,11 @@
     import {
         new_agent_name,
         new_agent_description,
-        new_agent_instructions, app_mode,
+        new_agent_instructions,
 
     } from "$lib/stores/app_store.js";
     import {addAgent} from "$lib/api/agents";
+    import {goto} from "$app/navigation";
 
     async function create_new_agent() {
         if ($new_agent_name === '')
@@ -17,7 +18,7 @@
         new_agent_name.update(() => '')
         new_agent_description.update(() => '')
         new_agent_instructions.update(() => '')
-        app_mode.update(() => 'agent_selection')
+        await goto("agent-selection");
     }
 
 </script>

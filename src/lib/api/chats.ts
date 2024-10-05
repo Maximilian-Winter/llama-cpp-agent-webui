@@ -12,7 +12,9 @@ export async function createChat(title: string, agentId: number): Promise<Chat> 
     if (!response.ok) {
         throw new Error('Failed to create chat.');
     }
-    return response.json();
+    const chat = await response.json();
+    chat.settings = GenerationSettings.fromJSON(chat.settings);
+    return chat;
 }
 
 export async function getChatById(id: number): Promise<Chat> {
@@ -34,7 +36,9 @@ export async function updateChatTitle(id: number, title: string): Promise<Chat> 
     if (!response.ok) {
         throw new Error('Failed to update chat title.');
     }
-    return response.json();
+    const chat = await response.json();
+    chat.settings = GenerationSettings.fromJSON(chat.settings);
+    return chat;
 }
 
 export async function deleteChat(id: number): Promise<void> {
@@ -51,7 +55,9 @@ export async function getAllChats(): Promise<Chat[]> {
     if (!response.ok) {
         throw new Error('Failed to fetch chats.');
     }
-    return response.json();
+    const chats: Chat[] = await response.json();
+    chats.map((chat, index, chats) => {chat.settings  = GenerationSettings.fromJSON(chat.settings); return chat;})
+    return chats;
 }
 
 export async function updateChatSettings(id: number, settings: any): Promise<void> {
