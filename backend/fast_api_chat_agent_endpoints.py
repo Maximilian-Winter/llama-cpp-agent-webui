@@ -87,7 +87,7 @@ class Settings(BaseModel):
     tfsz: float
     rep_pen: float
     rep_pen_range: int
-
+    show_agent_instructions: bool
 
 class ChatResponse(BaseModel):
     id: int

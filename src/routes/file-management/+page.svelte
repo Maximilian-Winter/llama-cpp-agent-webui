@@ -4,8 +4,8 @@
     import { reloadFileTree } from '$lib/stores/file_store';
     import { getFilePaths, createFile } from '$lib/api/files';
     import type { FilePathResponse } from "$lib/types/api";
+    import { Upload, Plus, X } from 'lucide-svelte';
 
-    // Local variables
     let files: FilePathResponse[] = [];
     let newFilePath: string = '';
     let newFileContent: string = '';
@@ -23,7 +23,6 @@
         files = await getFilePaths();
     }
 
-    // Function to handle file selection
     function handleFileSelect(event: Event) {
         const target = event.target as HTMLInputElement;
         const file = (target.files as FileList)[0];
@@ -34,7 +33,6 @@
         }
     }
 
-    // Function to handle file upload
     async function uploadFile() {
         if (uploadedFile) {
             const reader = new FileReader();
@@ -46,7 +44,6 @@
         }
     }
 
-    // Function to handle manual file creation or upload
     async function saveFile(content?: string) {
         try {
             await createFile(serverFilePath, content || newFileContent);
@@ -64,55 +61,61 @@
     }
 </script>
 
-<div class="flex min-h-screen w-full bg-[#0d1117] text-slate-300">
+<div class="flex min-h-screen bg-[#0d1117] text-slate-300">
     <!-- Left Side: File Tree -->
-    <div class="w-1/4 border-r border-gray-700 p-4">
-        <h2 class="text-xl font-bold mb-4">File Explorer</h2>
+    <div class="w-1/4 border-r border-gray-700 p-4 overflow-y-auto">
+        <h2 class="text-xl font-bold mb-4 text-blue-400">File Explorer</h2>
         <FileTree {files} />
     </div>
 
     <!-- Right Side: File Upload/Creation -->
     <div class="w-3/4 p-8">
-        <h1 class="mb-4 text-2xl font-bold">Create New File</h1>
-        <div class="mb-4">
-            <label class="inline-flex items-center mr-4">
-                <input type="radio" class="form-radio" name="createMethod" value="upload" bind:group={createMethod}>
-                <span class="ml-2">Upload File</span>
-            </label>
-            <label class="inline-flex items-center">
-                <input type="radio" class="form-radio" name="createMethod" value="manual" bind:group={createMethod}>
-                <span class="ml-2">Create Manually</span>
-            </label>
+        <h1 class="mb-6 text-3xl font-bold text-blue-400">Create New File</h1>
+        <div class="mb-6 flex space-x-4">
+            <button
+                    class={`px-4 py-2 rounded-md transition-colors duration-200 ${createMethod === 'upload' ? 'bg-blue-600 text-white' : 'bg-[#1c2128] text-slate-300 hover:bg-[#2c3138]'}`}
+                    on:click={() => createMethod = 'upload'}
+            >
+                <Upload class="inline-block mr-2" size={18} />
+                Upload File
+            </button>
+            <button
+                    class={`px-4 py-2 rounded-md transition-colors duration-200 ${createMethod === 'manual' ? 'bg-blue-600 text-white' : 'bg-[#1c2128] text-slate-300 hover:bg-[#2c3138]'}`}
+                    on:click={() => createMethod = 'manual'}
+            >
+                <Plus class="inline-block mr-2" size={18} />
+                Create Manually
+            </button>
         </div>
         {#if createMethod === 'upload'}
-            <div>
-                <label for="file-upload" class="block text-sm font-medium">Choose File</label>
+            <div class="bg-[#1c2128] p-6 rounded-lg">
+                <label for="file-upload" class="block text-sm font-medium mb-2">Choose File</label>
                 <input
                         id="file-upload"
                         type="file"
-                        class="mt-1 block w-full text-slate-200"
+                        class="block w-full text-sm text-slate-300 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700"
                         on:change={handleFileSelect}
                         bind:this={fileInput}
                 />
             </div>
         {:else}
-            <form class="space-y-6" on:submit|preventDefault={() => saveFile()}>
+            <form class="space-y-6 bg-[#1c2128] p-6 rounded-lg" on:submit|preventDefault={() => saveFile()}>
                 <div>
-                    <label for="new-file-path-input" class="block text-sm font-medium">File Path</label>
+                    <label for="new-file-path-input" class="block text-sm font-medium mb-2">File Path</label>
                     <input
                             id="new-file-path-input"
                             type="text"
-                            class="mt-1 block w-full rounded-md border-gray-300 bg-[#161b22] px-4 py-2 text-slate-200 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                            class="w-full rounded-md border-gray-700 bg-[#2c3138] px-4 py-2 text-slate-200 focus:border-blue-500 focus:ring-blue-500"
                             placeholder="Enter file path (e.g., /folder/file.txt)"
                             bind:value={newFilePath}
                             required
                     />
                 </div>
                 <div>
-                    <label for="new-file-content-input" class="block text-sm font-medium">Content</label>
+                    <label for="new-file-content-input" class="block text-sm font-medium mb-2">Content</label>
                     <textarea
                             id="new-file-content-input"
-                            class="mt-1 block w-full rounded-md border-gray-300 bg-[#161b22] px-4 py-2 text-slate-200 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                            class="w-full rounded-md border-gray-700 bg-[#2c3138] px-4 py-2 text-slate-200 focus:border-blue-500 focus:ring-blue-500"
                             rows="15"
                             bind:value={newFileContent}
                             required
@@ -121,8 +124,9 @@
                 <div>
                     <button
                             type="submit"
-                            class="inline-flex items-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                            class="inline-flex items-center rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                     >
+                        <Plus class="mr-2" size={18} />
                         Create File
                     </button>
                 </div>
@@ -132,34 +136,28 @@
 </div>
 
 {#if showModal}
-    <div class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full" id="my-modal">
-        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-[#161b22]">
-            <div class="mt-3 text-center">
-                <h3 class="text-lg leading-6 font-medium text-slate-200">Specify Server File Path</h3>
-                <div class="mt-2 px-7 py-3">
-                    <input
-                            type="text"
-                            class="w-full px-3 py-2 text-slate-200 border rounded-lg focus:outline-none bg-[#0d1117]"
-                            bind:value={serverFilePath}
-                            placeholder="Enter server file path"
-                    />
-                </div>
-                <div class="items-center px-4 py-3">
-                    <button
-                            id="ok-btn"
-                            class="px-4 py-2 bg-blue-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300"
-                            on:click={uploadFile}
-                    >
-                        Upload
-                    </button>
-                    <button
-                            id="cancel-btn"
-                            class="mt-3 px-4 py-2 bg-gray-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-300"
-                            on:click={() => showModal = false}
-                    >
-                        Cancel
-                    </button>
-                </div>
+    <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-[#1c2128] p-6 rounded-lg shadow-xl w-96">
+            <h3 class="text-lg font-medium text-slate-200 mb-4">Specify Server File Path</h3>
+            <input
+                    type="text"
+                    class="w-full px-3 py-2 text-slate-200 border rounded-lg focus:outline-none bg-[#2c3138] mb-4"
+                    bind:value={serverFilePath}
+                    placeholder="Enter server file path"
+            />
+            <div class="flex justify-end space-x-3">
+                <button
+                        class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                        on:click={uploadFile}
+                >
+                    Upload
+                </button>
+                <button
+                        class="px-4 py-2 bg-gray-600 text-white text-sm font-medium rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+                        on:click={() => showModal = false}
+                >
+                    Cancel
+                </button>
             </div>
         </div>
     </div>

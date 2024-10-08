@@ -2,7 +2,7 @@ import datetime
 from contextlib import contextmanager
 from types import SimpleNamespace
 
-from sqlalchemy import create_engine, Column, Integer, String, ForeignKey, DateTime, Float, Text, event
+from sqlalchemy import create_engine, Column, Integer, String, ForeignKey, DateTime, Float, Text, event, Boolean
 from sqlalchemy.orm import DeclarativeBase, declared_attr
 from sqlalchemy.orm import relationship, scoped_session, sessionmaker
 
@@ -65,6 +65,7 @@ class ChatSettings(Base):
     tfsz = Column(Float, default=1.0)
     rep_pen = Column(Float, default=1.2)
     rep_pen_range = Column(Integer, default=512)
+    show_agent_instructions = Column(Boolean, default=True)
     chat = relationship("Chat", back_populates="settings")
 
 

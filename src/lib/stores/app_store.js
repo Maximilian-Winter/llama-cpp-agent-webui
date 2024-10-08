@@ -45,6 +45,7 @@ export class GenerationSettings {
      * @param {number} [params.tfsz=1] - Tail free sampling parameter
      * @param {number} [params.rep_pen=1.2] - Repetition penalty factor
      * @param {number} [params.rep_pen_range=512] - Repetition penalty range
+     * @param {boolean} [params.show_agent_instructions] - Show agent instructions
      */
     constructor({
                     max_tokens = 2048,
@@ -55,7 +56,8 @@ export class GenerationSettings {
                     typ_p = 1,
                     tfsz = 1,
                     rep_pen = 1.2,
-                    rep_pen_range = 512
+                    rep_pen_range = 512,
+                    show_agent_instructions = false
                 } = {}) {
         this.max_tokens = max_tokens;
         this.temperature = temperature;
@@ -66,6 +68,7 @@ export class GenerationSettings {
         this.tfsz = tfsz;
         this.rep_pen = rep_pen;
         this.rep_pen_range = rep_pen_range;
+        this.show_agent_instructions = show_agent_instructions;
     }
 
     /**
@@ -82,7 +85,8 @@ export class GenerationSettings {
             typ_p: this.typ_p,
             tfsz: this.tfsz,
             rep_pen: this.rep_pen,
-            rep_pen_range: this.rep_pen_range
+            rep_pen_range: this.rep_pen_range,
+            show_agent_instructions: this.show_agent_instructions
         };
     }
 

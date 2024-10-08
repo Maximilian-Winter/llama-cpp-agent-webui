@@ -92,6 +92,12 @@
                        bind:value={$current_chat.settings.rep_pen_range}
                        on:change={(e) => updateSettings('rep_pen_range', +e.currentTarget.value)}>
             </div>
+            <div>
+                <label for="show-agent-instructions" class="block text-sm font-medium text-slate-400">Show agent instructions</label>
+                <input type="checkbox" id="show-agent-instructions" class="mt-1 block w-full rounded-md border-slate-700 bg-[#0d1117] py-2 pl-3 pr-10 text-base text-slate-200 focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm" placeholder="512"
+                       bind:value={$current_chat.settings.show_agent_instructions}
+                       on:change={(e) => updateSettings('show_agent_instructions', +e.currentTarget.value)}>
+            </div>
         </div>
     </div>
 </aside>

@@ -23,7 +23,7 @@
                 return chat;
             });
             handleNewChat();
-            await goto('/chat');
+            await goto('/chat/' + new_chat.id);
         } catch (error) {
             console.error('Failed to create chat:', error);
         }
@@ -46,7 +46,7 @@
         try {
             const updatedChat = await getChatById(chat.id);
             current_chat.set(updatedChat);
-            await goto('/chat');
+            await goto('/chat/' + updatedChat.id);
         } catch (error) {
             console.error('Failed to fetch chat:', error);
         }
