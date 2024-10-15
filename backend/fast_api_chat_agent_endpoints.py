@@ -18,7 +18,7 @@ from ToolAgents.provider import OpenAIChatAPI, OpenAISettings
 
 chat_history = ChatHistory()
 provider = OpenAIChatAPI(api_key=os.getenv("API_KEY"), base_url="https://openrouter.ai/api/v1",
-                         model="meta-llama/llama-3.1-405b-instruct")
+                         model="x-ai/grok-2")
 mistral_agent = ChatAPIAgent(chat_api=provider, debug_output=True)
 llm_sampling_settings = OpenAISettings()
 

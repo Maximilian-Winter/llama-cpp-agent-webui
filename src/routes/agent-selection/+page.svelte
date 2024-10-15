@@ -1,19 +1,20 @@
 <script lang="ts">
     import { onMount } from "svelte";
     import {
-        Agent,
+        createMessage,
         current_agent_description,
         current_agent_id,
         current_agent_instructions,
         current_agent_name,
         current_chat,
-        Message,
     } from "$lib/stores/app_store";
-    import DeleteAgent from "$lib/components/delete_agent.svelte";
+
     import { createChat } from "$lib/api/chats";
     import { deleteAgent, getAgents } from "$lib/api/agents";
-    import { Trash2, Edit, MessageSquare } from 'lucide-svelte';
+    import {Trash2, Edit, MessageSquare, Plus} from 'lucide-svelte';
     import {goto} from "$app/navigation";
+    import type {Agent, Message} from "$lib/types/api";
+    import ConfirmationModal from "$lib/components/ConfirmationModal.svelte";
 
     let agents: Agent[] = [];
 
@@ -32,13 +33,13 @@
     let deletingAgent = false;
     let agentId = -1;
 
-    async function delete_agent(id: number): Promise<void> {
+    async function showDeleteAgent(id: number): Promise<void> {
         agentId = id;
         deletingAgent = true;
     }
 
-    async function handleDeleteAgent(e: CustomEvent<{ id: number }>): Promise<void> {
-        await deleteAgent(e.detail.id);
+    async function handleDeleteAgent(): Promise<void> {
+        await deleteAgent(agentId);
         deletingAgent = false;
         agents = await fetchAgents();
     }
@@ -50,12 +51,15 @@
     async function start_chat(id: number): Promise<void> {
         current_agent_id.set(id)
         const response = await createChat("New Chat", id);
-        const newMessage = new Message(-1, "system", response.agent.instructions, "Today");
+        let newMessage: Message;
+        newMessage = createMessage(-1, "system", response.agent.instructions, "Today");
         response.messages.push(newMessage);
         current_chat.set(response);
         await goto("/chat");
     }
-
+    function navigateToCreateAgent() {
+        goto("/agent-creation");
+    }
     onMount(async () => {
         agents = await fetchAgents();
     });
@@ -63,7 +67,18 @@
 
 <div class="min-h-screen w-full bg-[#0d1117] text-slate-300 px-4 py-8">
     <div class="max-w-6xl mx-auto">
-        <h1 class="text-3xl font-bold mb-8 text-center">Agent Selection</h1>
+
+        <div class="flex justify-between items-center mb-8">
+            <h1 class="text-3xl font-bold text-center">Agent Selection</h1>
+            <button
+                    class="flex items-center space-x-2 bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded transition-colors duration-200"
+                    on:click={navigateToCreateAgent}
+            >
+                <Plus size={18} />
+                <span>Create Agent</span>
+            </button>
+
+        </div>
 
         {#if agents.length === 0}
             <p class="text-center text-slate-400">No agents available. Create a new agent to get started.</p>
@@ -92,7 +107,7 @@
                                     </button>
                                     <button
                                             class="p-2 text-slate-400 hover:text-red-400 transition-colors duration-200"
-                                            on:click={() => delete_agent(id)}
+                                            on:click={() => showDeleteAgent(id)}
                                             title="Delete Agent"
                                     >
                                         <Trash2 size={18} />
@@ -108,7 +123,7 @@
 </div>
 
 {#if deletingAgent}
-    <DeleteAgent agentId={agentId} on:delete_agent={handleDeleteAgent} on:close={handleCancelDeleteAgent}/>
+    <ConfirmationModal title="Delete the Agent?" on:confirm={handleDeleteAgent} on:cancel={handleCancelDeleteAgent}/>
 {/if}
 
 <style>

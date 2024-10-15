@@ -1,6 +1,7 @@
 <script lang="ts">
     import { createEventDispatcher } from 'svelte';
-    import {Chat} from "$lib/stores/app_store.js";
+    import type {Chat} from "$lib/types/api";
+
 
     const dispatch = createEventDispatcher();
     export let chat: Chat;

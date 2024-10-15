@@ -1,4 +1,5 @@
-import { Chat, GenerationSettings } from '$lib/stores/app_store';
+import type {Chat} from "$lib/types/api";
+
 
 const API_BASE_URL = 'http://localhost:8042';
 
@@ -12,9 +13,7 @@ export async function createChat(title: string, agentId: number): Promise<Chat> 
     if (!response.ok) {
         throw new Error('Failed to create chat.');
     }
-    const chat = await response.json();
-    chat.settings = GenerationSettings.fromJSON(chat.settings);
-    return chat;
+    return await response.json();
 }
 
 export async function getChatById(id: number): Promise<Chat> {
@@ -22,9 +21,8 @@ export async function getChatById(id: number): Promise<Chat> {
     if (!response.ok) {
         throw new Error('Failed to fetch chat.');
     }
-    const chat = await response.json();
-    chat.settings = GenerationSettings.fromJSON(chat.settings);
-    return chat;
+
+    return await response.json();
 }
 
 export async function updateChatTitle(id: number, title: string): Promise<Chat> {
@@ -36,9 +34,7 @@ export async function updateChatTitle(id: number, title: string): Promise<Chat> 
     if (!response.ok) {
         throw new Error('Failed to update chat title.');
     }
-    const chat = await response.json();
-    chat.settings = GenerationSettings.fromJSON(chat.settings);
-    return chat;
+    return await response.json();
 }
 
 export async function deleteChat(id: number): Promise<void> {
@@ -55,13 +51,11 @@ export async function getAllChats(): Promise<Chat[]> {
     if (!response.ok) {
         throw new Error('Failed to fetch chats.');
     }
-    const chats: Chat[] = await response.json();
-    chats.map((chat, index, chats) => {chat.settings  = GenerationSettings.fromJSON(chat.settings); return chat;})
-    return chats;
+    return await response.json();
 }
 
 export async function updateChatSettings(id: number, settings: any): Promise<void> {
-    const response = await fetch(`http://localhost:8042/chats/${id}/settings`, {
+    const response = await fetch(`${API_BASE_URL}/chats/${id}/settings`, {
         method: 'PUT',
         headers: {
             'Content-Type': 'application/json',

@@ -13,12 +13,10 @@
 
     function confirm() {
         dispatch('confirm');
-        close();
     }
 
     function cancel() {
         dispatch('cancel');
-        close();
     }
 
 </script>

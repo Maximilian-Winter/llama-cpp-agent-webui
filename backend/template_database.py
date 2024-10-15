@@ -37,6 +37,7 @@ class Template(Base):
     id = Column(Integer, primary_key=True)
     template_type = Column(String)
     template_name = Column(String)
+    description = Column(String)
     content = Column(Text)
 
 
@@ -45,6 +46,7 @@ class TemplateSet(Base):
 
     id = Column(Integer, primary_key=True)
     name = Column(String, unique=True)
+    description = Column(String)
     user_message_template_id = Column(Integer, ForeignKey('templates.id'))
     rag_user_message_template_id = Column(Integer, ForeignKey('templates.id'))
     file_combining_template_id = Column(Integer, ForeignKey('templates.id'))
@@ -75,9 +77,9 @@ class TemplateManager:
         finally:
             session.close()
 
-    def add_template(self, template_type: TemplateType, template_name: str, content: str):
+    def add_template(self, template_type: TemplateType, template_name: str, description: str, content: str):
         with self.session_scope() as session:
-            template = Template(template_type=template_type.value, template_name=template_name, content=content)
+            template = Template(template_type=template_type.value, template_name=template_name, description=description, content=content)
             session.add(template)
         return template
 
@@ -99,7 +101,7 @@ class TemplateManager:
             templates = session.query(Template).filter_by(template_type=template_type.value).all()
             return [template.to_obj() for template in templates]
 
-    def update_template(self, template_id, template_type: TemplateType = None, template_name: str = None, content: str = None):
+    def update_template(self, template_id, template_type: TemplateType = None, template_name: str = None, description=None, content: str = None):
         with self.session_scope() as session:
             template = session.query(Template).filter_by(id=template_id).first()
             if template:
@@ -107,6 +109,8 @@ class TemplateManager:
                     template.template_name = template_name
                 if content is not None:
                     template.content = content
+                if description is not None:
+                    template.description = description
                 if template_type is not None:
                     template.template_type = template_type.value
             else:
@@ -120,10 +124,11 @@ class TemplateManager:
                 return True
             return False
 
-    def add_template_set(self, name: str, user_message_id: int, rag_user_message_id: int, file_combining_id: int, file_output_id: int):
+    def add_template_set(self, name: str, description: str, user_message_id: int, rag_user_message_id: int, file_combining_id: int, file_output_id: int):
         with self.session_scope() as session:
             template_set = TemplateSet(
                 name=name,
+                description=description,
                 user_message_template_id=user_message_id,
                 rag_user_message_template_id=rag_user_message_id,
                 file_combining_template_id=file_combining_id,

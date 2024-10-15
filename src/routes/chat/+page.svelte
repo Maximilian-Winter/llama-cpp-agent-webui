@@ -1,8 +1,7 @@
 <script lang="ts">
-    import { chats, current_chat, text } from '$lib/stores/app_store.js';
+    import { chats, current_chat, text } from '$lib/stores/app_store';
     import { onMount } from 'svelte';
     import { goto } from '$app/navigation';
-    import ChatComponent from '$lib/components/ChatComponent.svelte';
 
     onMount(async () => {
         if ($current_chat.id === -1) {
@@ -11,15 +10,13 @@
         }
     });
 
-    $: {
-        if ($current_chat.id !== -1) {
-            goto(`/chat/${$current_chat.id}`, { replaceState: true });
-        }
+    async function gotoChat(id: number) {
+        await goto(`/chat/${id}`);
     }
 </script>
 
 {#if $current_chat.id !== -1}
-    <ChatComponent />
+    {gotoChat($current_chat.id)}
 {:else}
     <p>No chat selected. Please choose a chat from the sidebar or start a new one.</p>
 {/if}

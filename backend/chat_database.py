@@ -260,7 +260,8 @@ class ChatDatabase:
                     'typ_p': chat.settings.typ_p,
                     'tfsz': chat.settings.tfsz,
                     'rep_pen': chat.settings.rep_pen,
-                    'rep_pen_range': chat.settings.rep_pen_range
+                    'rep_pen_range': chat.settings.rep_pen_range,
+                    'show_agent_instructions': chat.settings.show_agent_instructions,
                 }
 
                 chat_details = {

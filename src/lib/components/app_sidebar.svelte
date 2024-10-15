@@ -1,24 +1,29 @@
 <script lang="ts">
     import { goto } from '$app/navigation';
     import {
-        Chat,
         current_chat,
-        Message,
         chats,
-        current_agent_id
+        current_agent_id, createMessage
     } from '$lib/stores/app_store';
     import EditChatTitle from '$lib/components/edit_chat.svelte'
-    import DeleteChat from '$lib/components/delete_chat.svelte'
     import { onMount } from "svelte";
     import { createChat, getChatById, updateChatTitle, deleteChat, getAllChats } from '$lib/api/chats';
     import {Home, MessageSquare, Users, UserPlus, Folder, Settings, Trash2} from 'lucide-svelte';
+    import ConfirmationModal from "$lib/components/ConfirmationModal.svelte";
+    import type {Chat} from "$lib/types/api";
 
     async function start_chat(): Promise<void> {
         try {
+            if($current_chat.id != -1 && ($current_chat.messages.length == 0))
+            {
+
+                await goto('/chat/' +  $current_chat.id);
+                return;
+            }
             let new_chat = await createChat("New Chat", $current_agent_id);
             current_chat.set(new_chat);
             current_chat.update(chat => {
-                const newMessage = new Message(-1, "system", new_chat.agent.instructions, "Today");
+                const newMessage = createMessage(-1, "system", new_chat.agent.instructions, "Today");
                 chat.messages.push(newMessage);
                 return chat;
             });
@@ -64,8 +69,7 @@
         let id = e.detail.id;
         let title = e.detail.title;
         try {
-            await updateChatTitle(id ?? -1, title ?? "");
-            await goto('/chat');
+            await updateChatTitle(id ?? -1, title ?? "New Chat");
             handleNewChat();
         } catch (error) {
             console.error('Failed to update chat title:', error);
@@ -76,14 +80,14 @@
     let deletingChat = false;
     let chatId = -1;
 
-    async function delete_chat(id: number): Promise<void> {
+    async function showDeleteChatModal(id: number): Promise<void> {
         chatId = id;
         deletingChat = true;
     }
 
-    async function handleDeleteChat(e: CustomEvent<{id: number}>): Promise<void> {
+    async function handleDeleteChat(): Promise<void> {
         try {
-            await deleteChat(e.detail.id);
+            await deleteChat(chatId);
             deletingChat = false;
             handleNewChat();
         } catch (error) {
@@ -148,13 +152,7 @@
             <li>
                 <button class="flex w-full items-center rounded-lg px-3 py-2 text-slate-300 transition-colors duration-200 hover:bg-slate-700 hover:text-white" on:click={() => _goto('/agent-selection')}>
                     <Users size={18} class="mr-3" />
-                    <span>All Agents</span>
-                </button>
-            </li>
-            <li>
-                <button class="flex w-full items-center rounded-lg px-3 py-2 text-slate-300 transition-colors duration-200 hover:bg-slate-700 hover:text-white" on:click={() => _goto('/agent-creation')}>
-                    <UserPlus size={18} class="mr-3" />
-                    <span>Agent Creation</span>
+                    <span>Agents</span>
                 </button>
             </li>
             <li>
@@ -186,7 +184,7 @@
                             <button class="p-1 text-slate-400 hover:text-white" on:click={() => editCurrentChat(chat)} title="Edit">
                                 <Settings size={14} />
                             </button>
-                            <button class="p-1 text-slate-400 hover:text-red-400" on:click={() => delete_chat(chat.id)} title="Delete">
+                            <button class="p-1 text-slate-400 hover:text-red-400" on:click={() => showDeleteChatModal(chat.id)} title="Delete">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
                                     <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
                                 </svg>
@@ -202,7 +200,7 @@
         <EditChatTitle chat={editChat} on:save={handleSave} on:close={handleClose}/>
     {/if}
     {#if deletingChat}
-        <DeleteChat chatId={chatId} on:delete_chat={handleDeleteChat} on:close={handleCancelDeleteChat}/>
+        <ConfirmationModal title="Delete the Chat?" on:confirm={handleDeleteChat} on:cancel={handleCancelDeleteChat}/>
     {/if}
 </aside>
 

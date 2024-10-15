@@ -2,8 +2,8 @@
     import { onMount } from 'svelte';
     import { getAllChats, deleteChat } from '$lib/api/chats';
     import { getFilePaths, deleteFile } from '$lib/api/files';
-    import { Chat } from '$lib/stores/app_store';
-    import type { FilePathResponse } from "$lib/types/api";
+
+    import type {Chat, FilePathResponse} from "$lib/types/api";
     import { Trash2 } from 'lucide-svelte';
 
     let chat_items: Chat[] = [];

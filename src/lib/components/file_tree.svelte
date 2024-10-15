@@ -12,9 +12,6 @@
         children: TreeNode[];
     }
 
-    function getFileCount(paths: FilePathResponse[]) {
-        return paths.length;
-    }
 
     function buildTree(paths: FilePathResponse[]): TreeNode[] {
         const root: TreeNode[] = [];

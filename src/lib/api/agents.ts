@@ -1,4 +1,4 @@
-import type {Agent} from "$lib/stores/app_store";
+import type {Agent} from "$lib/types/api";
 
 export async function getAgents(): Promise<Agent[]> {
     const response = await fetch('http://localhost:8042/agents/');

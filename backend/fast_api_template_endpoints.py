@@ -32,6 +32,7 @@ class TemplateResponse(TemplateBase):
 
 class TemplateSetBase(BaseModel):
     name: str
+    description: str
     user_message_template_id: int
     rag_user_message_template_id: int
     file_combining_template_id: int
@@ -44,6 +45,7 @@ class TemplateSetCreate(TemplateSetBase):
 
 class TemplateSetUpdate(BaseModel):
     name: Optional[str] = None
+    description: Optional[str] = None
     user_message_template_id: Optional[int] = None
     rag_user_message_template_id: Optional[int] = None
     file_combining_template_id: Optional[int] = None

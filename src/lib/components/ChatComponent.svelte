@@ -1,11 +1,10 @@
 <script lang="ts">
     import {
         current_chat,
-        Message,
         sidebarVisible,
         text,
-        chats
-    } from '$lib/stores/app_store.js';
+        chats, createMessage
+    } from '$lib/stores/app_store';
     import { createEventDispatcher } from 'svelte';
     import EditMessage from './edit_message.svelte';
     import CodeBlock from './code_block.svelte';
@@ -31,7 +30,7 @@
             return;
         }
         current_chat.update(chat => {
-            const newMessage = new Message(-1, "user", $text, new Date().toISOString());
+            const newMessage = createMessage(-1, "user", $text, new Date().toISOString());
             chat.messages.push(newMessage);
             return chat;
         });
@@ -45,7 +44,7 @@
             chat_id: $current_chat.id,
             agent_id: $current_chat.agent.id,
             messages: $current_chat.messages,
-            settings: $current_chat.settings.toJSON()
+            settings: $current_chat.settings
         };
 
         const response = await fetch('http://localhost:8042/llama/complete', {
@@ -57,7 +56,7 @@
         });
 
         current_chat.update(chat => {
-            const newMessage = new Message(-1, "assistant", "", new Date().toISOString());
+            const newMessage = createMessage(-1, "assistant", "", new Date().toISOString());
             chat.messages.push(newMessage);
             return chat;
         });

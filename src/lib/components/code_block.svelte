@@ -10,18 +10,14 @@
     let processedContent = '';
 
     $: if (content) {
-        console.log("Content changed, length:", content.length);
         processContent();
     }
 
     async function processContent() {
-        console.log("Processing content");
         const markedContent = await marked(content);
         processedContent = DOMPurify.sanitize(markedContent);
-        console.log("Processed content length:", processedContent.length);
 
-        await tick();
-        hljs.highlightAll();
+
     }
 
     function getLanguageIcon(language: string): string {
@@ -44,11 +40,8 @@
     }
 
     function wrapCodeBlocks() {
-        console.log("Wrapping code blocks");
 
         const codeBlocks = markdownContainer.querySelectorAll('pre > code');
-        console.log("Found code blocks:", codeBlocks.length);
-
         codeBlocks.forEach((block, index) => {
             const pre = block.parentElement;
             if (pre) {
@@ -57,14 +50,11 @@
                     wrapper.remove();
                 }
 
-                console.log(`Wrapping code block ${index}`);
                 wrapCodeBlock(block as HTMLElement, pre as HTMLElement, index);
-            } else {
-                console.log(`Code block ${index} is invalid (no pre parent)`);
             }
         });
 
-        hljs.highlightAll();
+
     }
 
     function wrapCodeBlock(block: HTMLElement, pre: HTMLElement, index: number) {
@@ -113,10 +103,15 @@
 
     onMount(() => {
         wrapCodeBlocks();
+        tick();
+        hljs.highlightAll();
+
     });
 
     afterUpdate(() => {
         wrapCodeBlocks();
+        tick();
+        hljs.highlightAll();
     });
 </script>
 
