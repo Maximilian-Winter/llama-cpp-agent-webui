@@ -13,14 +13,15 @@ from chat_database import ChatDatabase
 from ToolAgents.utilities import ChatHistory
 
 
-from ToolAgents.agents import ChatAPIAgent
-from ToolAgents.provider import OpenAIChatAPI, OpenAISettings
+from ToolAgents.agents import Llama31Agent
+from ToolAgents.provider import VLLMServerProvider, VLLMServerSamplingSettings
 
 chat_history = ChatHistory()
-provider = OpenAIChatAPI(api_key=os.getenv("API_KEY"), base_url="https://openrouter.ai/api/v1",
-                         model="x-ai/grok-2")
-mistral_agent = ChatAPIAgent(chat_api=provider, debug_output=True)
-llm_sampling_settings = OpenAISettings()
+provider = VLLMServerProvider(api_key="super-secret-token-422", base_url="https://maximilian-winter--vllm-openai-compatible-serve.modal.run/v1",
+                            model="huihui-ai/Llama-3.3-70B-Instruct-abliterated", huggingface_model="huihui-ai/Llama-3.3-70B-Instruct-abliterated")
+llm_agent = Llama31Agent(provider=provider, debug_output=True)
+llm_sampling_settings = VLLMServerSamplingSettings()
+llm_sampling_settings.max_tokens = 8192
 
 db = ChatDatabase()
 chat_agent_api_router = fastapi.APIRouter()
@@ -116,7 +117,7 @@ async def complete_llama(generationRequest: GenerationRequest):
     else:
         db.add_or_update_chat_settings(chat_id, generationRequest.settings.model_dump())
     messages_ids = []
-    global llm_sampling_settings, mistral_agent, chat_history
+    global llm_sampling_settings, llm_agent, chat_history
     chat_history = ChatHistory()
     agent = db.get_agent_by_id(generationRequest.agent_id)
     system_message = agent.instructions
@@ -148,10 +149,10 @@ async def complete_llama(generationRequest: GenerationRequest):
 
 @chat_agent_api_router.get("/llama/stream")
 async def stream_llama(request: Request):
-    global llm_sampling_settings, mistral_agent, chat_history
+    global llm_sampling_settings, llm_agent, chat_history
 
     async def async_generator():
-        for item in mistral_agent.get_streaming_response(
+        for item in llm_agent.get_streaming_response(
                 messages=chat_history.to_list(),
                 settings=llm_sampling_settings):
             yield item
